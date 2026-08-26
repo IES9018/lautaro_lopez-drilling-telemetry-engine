@@ -47,6 +47,7 @@ Este informe aporta a la rúbrica de evaluación (**10% Documentación / Auditor
 | A-004 | 2026-08-25 | `src/engine/simulator/well_generator.py` | convergencia numérica | Integración a ~1000 Hz (`dt_internal=1e-3`) vs muestreo de telemetría 100 Hz (`dt=0.01`). Si `dt` no es múltiplo exacto de `dt_internal`, se usa `n_sub=round(dt/dt_internal)` y `sub_dt=dt/n_sub` para conservar el horizonte `dt` a costa de un paso RK4 ligeramente distinto del nominal. | Documentar trade-off; preferir `dt` múltiplo de `dt_internal` en escenarios de producción. | `tests/integration/test_well_generator.py` | lautaro_lopez | cerrado |
 | A-005 | 2026-08-25 | `src/pipeline/buffer/time_sync_buffer.py`, `orchestration/simulation_orchestrator.py`, `api/connection_manager.py` | mala práctica / arquitectura | Fixed-lag smoothing real para MWD (15–45 s): journal de `(x,P,u,z)` en `deque` (~4500 entradas × ~1.25 KB ≈ 5.6 MB con N=6). Replay offload a `asyncio.to_thread`; drop silencioso si el origen MWD es más viejo que la ventana. Tick físico 100 Hz desacoplado del broadcast 60 FPS. Backpressure por cliente (`Queue` maxsize=2, drop-oldest). Redis Streams (RF-10) diferido a favor del buffer en memoria. | Documentar trade-offs; tests de alineación, fixed-lag determinista y ciclo de vida WS. | `tests/integration/test_time_sync_buffer.py`, `test_mwd_fixed_lag_correction.py`, `test_websocket_lifecycle.py` · `DIAGRAMAS_C4.md` | lautaro_lopez | cerrado |
 | A-006 | 2026-08-25 | `src/advisor/llm_diagnostics.py`, `prompts/drilling_sop.py`, `pipeline/api/connection_manager.py` | mala práctica / arquitectura | Latencia LLM (cientos de ms–s) incompatible con tick 100 Hz / broadcast 60 FPS. Se desacopla con `asyncio.create_task` fire-and-forget + `cooldown_sec=30` + `request_timeout_sec=5`. Envelope WS discriminado (`telemetry_frame` / `advisor_recommendation`). Límites `SAFE_WOB_RANGE_KN`/`SAFE_RPM_RANGE` no fijados en SPEC (supuesto Sprint 1). Mock determinista para CI sin credenciales. | Documentar trade-offs; tests de debounce, invariantes y API advisor. | `tests/unit/test_advisor.py`, `tests/integration/test_advisor_api.py` · `DIAGRAMAS_C4.md` §4 | lautaro_lopez | cerrado |
+| A-007 | 2026-08-26 | `src/ui/src/hooks/useTelemetryStream.ts`, `components/3d/DrillStringMesh.tsx` | mala práctica / arquitectura | Re-render React a 60 FPS satura el dashboard. Se desacopla: `frameRef` + `useFrame` para el canvas R3F; widgets throttled ~33 ms. Envelope discriminado en cliente. Gradiente/rotación desde `torsional_deformation_rad` (no se recalcula SSI en UI). | Documentar; Vitest del hook y gauges. | `src/ui` tests · `DIAGRAMAS_C4.md` §5 | lautaro_lopez | cerrado |
 
 > Agregar una fila por hallazgo. No borrar filas históricas: marcar estado `cerrado`.
 
@@ -69,13 +70,13 @@ Este informe aporta a la rúbrica de evaluación (**10% Documentación / Auditor
 
 | Métrica | Valor |
 |---------|-------|
-| Total de hallazgos registrados | 6 |
+| Total de hallazgos registrados | 7 |
 | Alucinaciones | 0 |
 | Convergencia numérica | 4 |
-| Malas prácticas | 2 |
-| Hallazgos cerrados | 6 |
+| Malas prácticas | 3 |
+| Hallazgos cerrados | 7 |
 | Hallazgos abiertos | 0 |
-| PRs con código IA auditado | 6 |
+| PRs con código IA auditado | 7 |
 
 ---
 
@@ -144,6 +145,17 @@ Este informe aporta a la rúbrica de evaluación (**10% Documentación / Auditor
 - **Corrección aplicada:** fire-and-forget + mock CI; documentar en `DIAGRAMAS_C4.md` §4
 - **Verificación:** `tests/unit/test_advisor.py`, `tests/integration/test_advisor_api.py`
 - **Lección aprendida:** cualquier I/O de latencia variable (LLM, red) debe quedar fuera del lazo de estimación
+
+### Detalle A-007
+
+- **Tipo:** mala práctica / arquitectura (frame-rate UI vs soft real-time)
+- **Agente / herramienta:** Frontend & WebGL/3D Graphics Architect (Cursor)
+- **Qué generó la IA (resumen):** `useTelemetryStream` con `frameRef` + throttle; `DrillStringMesh` lee ref en `useFrame`
+- **Por qué es un trade-off:** 60 FPS de telemetría no debe forzar 60 reconciliaciones React del dashboard
+- **Impacto potencial:** gauges ligeramente atrasados (~33 ms) vs canvas fluido; clientes deben parsear envelope `type`
+- **Corrección aplicada:** documentar en `DIAGRAMAS_C4.md` §5; tests Vitest del hook
+- **Verificación:** `npm test` / `npm run typecheck` / `npm run build` en `src/ui`
+- **Lección aprendida:** hot path gráfico → refs; UI React → estado throttled
 
 
 ---

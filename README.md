@@ -17,7 +17,7 @@ Motor de estimación de estado en tiempo real y gemelo digital para monitoreo de
 
 ## Estado del proyecto
 
-**Fase actual:** Physics + UKF + simulador + **pipeline de streaming** (Sprint 1 en curso).
+**Fase actual:** Physics + UKF + simulador + pipeline + **gemelo digital 3D** (Sprint 1 en curso).
 
 | Entregable | Estado |
 |------------|--------|
@@ -32,13 +32,14 @@ Motor de estimación de estado en tiempo real y gemelo digital para monitoreo de
 | Contratos JSON Schema + DTOs Pydantic v2 | Listo |
 | TimeSyncBuffer + fixed-lag MWD | Listo |
 | FastAPI WebSocket ~60 FPS + REST control | Listo |
-| Tests unitarios + integración; cobertura ≥85% pipeline | Listo |
-| `MODELO_MATEMATICO.md` + `DIAGRAMAS_C4.md` + auditoría (A-001…A-005) | Listo |
+| LLM Advisor (debounce + mock provider + SOP) | Listo |
+| UI Next.js / R3F digital twin + gauges + AdvisorFeed | Listo |
+| Tests unitarios + integración; cobertura ≥85% pipeline/advisor | Listo |
+| `MODELO_MATEMATICO.md` + `DIAGRAMAS_C4.md` + auditoría (A-001…A-007) | Listo |
 | Tooling (`pyproject.toml`, CI) | Pendiente |
 | Redis Streams (RF-10) | Diferido (buffer in-memory Sprint 1) |
-| UI Three.js + LLM Advisor | Pendiente (P3) |
 
-**Rama de trabajo reciente:** `feature/pipeline-stream-ingest` → PR a `develop`.
+**Rama de trabajo reciente:** `feature/ui-3d-digital-twin` → PR a `develop`.
 
 ## Arquitectura (4 capas)
 
@@ -83,7 +84,7 @@ Detalle: [`SPEC.md`](SPEC.md) · C4: [`docs/arquitectura/DIAGRAMAS_C4.md`](docs/
 | Núcleo | Python 3.12+, NumPy (RK4/UKF propios) |
 | API / WS | FastAPI + WebSockets ~60 FPS |
 | Buffer | TimeSyncBuffer in-memory (Redis diferido) |
-| UI | Next.js, Three.js, TypeScript strict (pendiente) |
+| UI | Next.js 15, React Three Fiber, TypeScript strict (`src/ui/`) |
 | Calidad | mypy --strict, pytest, coverage; Ruff/Bandit pendientes en CI |
 
 ## Estructura
