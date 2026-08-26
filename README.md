@@ -17,7 +17,7 @@ Motor de estimación de estado en tiempo real y gemelo digital para monitoreo de
 
 ## Estado del proyecto
 
-**Fase actual:** núcleo Physics Engine + estimación UKF (Sprint 1 en curso).
+**Fase actual:** núcleo Physics + UKF + simulador de telemetría sintética (Sprint 1 en curso).
 
 | Entregable | Estado |
 |------------|--------|
@@ -28,13 +28,14 @@ Motor de estimación de estado en tiempo real y gemelo digital para monitoreo de
 | Drillstring FEM (espacio de estados) | Listo |
 | SSI calculator | Listo |
 | UKF (sigma points Van der Merwe + predict/update) | Listo |
-| Tests unitarios (71) + cobertura 100% en módulos core | Listo |
-| `MODELO_MATEMATICO.md` + auditoría IA (A-001…A-003) | Listo |
+| Simulador de pozo (`well_generator`) + retardo MWD | Listo |
+| Tests unitarios + integración; cobertura 100% en módulos core | Listo |
+| `MODELO_MATEMATICO.md` + auditoría IA (A-001…A-004) | Listo |
 | Tooling (`pyproject.toml`, CI) | Pendiente |
 | Pipeline Redis + WebSocket | Pendiente |
 | UI Three.js + LLM Advisor | Pendiente (P3) |
 
-**Rama de trabajo reciente:** `feature/kalman-ukf-estimator` → PR a `develop`.
+**Rama de trabajo reciente:** `feature/simulator-ground-truth` → PR a `develop`.
 
 ## Arquitectura (4 capas)
 
@@ -58,6 +59,7 @@ Detalle: [`SPEC.md`](SPEC.md) · matemáticas: [`docs/arquitectura/MODELO_MATEMA
 | `kalman/ssi_calculator.py` | Stick-Slip Severity Index + regímenes |
 | `kalman/sigma_points.py` | Sigma points Van der Merwe + Cholesky/jitter |
 | `kalman/ukf_estimator.py` | UKF `predict` / `update` sobre la dinámica FEM |
+| `simulator/well_generator.py` | Ground truth + ruido + retardo acústico MWD |
 
 ## Stack
 
