@@ -41,8 +41,9 @@ Este informe aporta a la rúbrica de evaluación (**10% Documentación / Auditor
 
 | ID | Fecha | Componente / ruta | Tipo | Descripción | Corrección manual aplicada | Evidencia (test/PR) | Responsable | Estado |
 |----|-------|-------------------|------|-------------|----------------------------|---------------------|-------------|--------|
-| A-001 | YYYY-MM-DD | `src/engine/...` | alucinación \| convergencia numérica \| mala práctica | … | … | … | lautaro_lopez | abierto \| cerrado |
-| A-002 |  |  |  |  |  |  |  |  |
+| A-001 | 2026-08-25 | `src/engine/physics/friction_models.py` | convergencia numérica | SPEC §2.3 usa \(T_c+(T_s-T_c)e^{-(\|\omega\|/\omega_s)^\delta}+b\omega\) sin regularización en ω=0 (discontinua / no diferenciable en el signo). La implementación Sprint 1 usa forma regularizada con `tanh(ω/ω_ε)` y decaimiento `exp(-γ\|ω\|)` para estabilidad numérica del lazo RK4. | Documentar como variante explícita; tests de imparidad, reposo T(0)=0 y régimen asintótico. No es alucinación: es decisión de regularización. | `tests/unit/test_friction_models.py` | lautaro_lopez | cerrado |
+| A-002 | 2026-08-25 | `src/engine/physics/drillstring_fem.py` | convergencia numérica | SPEC §2.2 indica “velocidad o torque prescrito” en superficie sin fijar la ley de accionamiento. Se modela top-drive como \(T_{drive}=c_{drive}(u_{top}-\omega_0)\) (amortiguamiento proporcional al error de velocidad). | Documentar en `MODELO_MATEMATICO.md`; validar con equilibrio rígido (`test_steady_state_torque_balance`). Decisión de modelado explícita, no alucinación. | `tests/unit/test_drillstring_fem.py` · docs/arquitectura/MODELO_MATEMATICO.md | lautaro_lopez | cerrado |
+| A-003 | 2026-08-25 | `src/engine/kalman/ukf_estimator.py`, `sigma_points.py` | convergencia numérica | SPEC §2.5.3 no fija si `update` regenera sigma points desde \((x^-,P^-)\) o reutiliza los propagados por `predict`. Se adopta reuso de sigma points propagados (Van der Merwe), Cholesky+jitter con backoff, re-simetrización de \(P\), y `np.linalg.solve` en vez de inversa explícita para \(K\). | Documentar en `MODELO_MATEMATICO.md` §8; tests de simetría/PSD y consistencia 3σ. | `tests/unit/test_ukf_estimator.py` · `tests/unit/test_sigma_points.py` | lautaro_lopez | cerrado |
 
 > Agregar una fila por hallazgo. No borrar filas históricas: marcar estado `cerrado`.
 
@@ -65,13 +66,49 @@ Este informe aporta a la rúbrica de evaluación (**10% Documentación / Auditor
 
 | Métrica | Valor |
 |---------|-------|
-| Total de hallazgos registrados | 0 |
+| Total de hallazgos registrados | 3 |
 | Alucinaciones | 0 |
-| Convergencia numérica | 0 |
+| Convergencia numérica | 3 |
 | Malas prácticas | 0 |
-| Hallazgos cerrados | 0 |
+| Hallazgos cerrados | 3 |
 | Hallazgos abiertos | 0 |
-| PRs con código IA auditado | 0 |
+| PRs con código IA auditado | 3 |
+
+---
+
+### Detalle A-001
+
+- **Tipo:** convergencia numérica (regularización intencional)
+- **Agente / herramienta:** Physics Engine Agent (Cursor)
+- **Qué generó la IA (resumen):** `stribeck_friction_torque` con `tanh` y `gamma`
+- **Por qué difiere del SPEC:** SPEC §2.3 no incluye `ω_ε`; la forma clásica con signo(ω) es discontinua en 0
+- **Impacto potencial:** sin regularización, RK4 cerca de stick puede oscilar / no derivar bien
+- **Corrección aplicada:** aceptar variante regularizada documentada; tests de imparidad y T(0)=0
+- **Verificación:** pytest unitario de fricción + contraste manual de fórmula
+- **Lección aprendida:** toda desviación de SPEC §2 debe registrarse aquí aunque sea físicamente motivada
+
+### Detalle A-002
+
+- **Tipo:** convergencia numérica (decisión de modelado)
+- **Agente / herramienta:** Physics Engine Agent (Cursor)
+- **Qué generó la IA (resumen):** \(T_{drive}=c_{drive}(u_{top}-\omega_0)\) en `build_state_derivative`
+- **Por qué difiere del SPEC:** SPEC §2.2 no fija la ley de accionamiento del top-drive
+- **Impacto potencial:** dinámica de superficie distinta a un torque prescrito puro
+- **Corrección aplicada:** documentar en `MODELO_MATEMATICO.md`; test de equilibrio rígido
+- **Verificación:** `test_steady_state_torque_balance`
+- **Lección aprendida:** toda BC no literal del SPEC requiere ADR/auditoría + test de invariante
+
+### Detalle A-003
+
+- **Tipo:** convergencia numérica (estabilidad numérica del UKF)
+- **Agente / herramienta:** Physics & State Estimation Agent (Cursor)
+- **Qué generó la IA (resumen):** reuso de sigma points propagados; Cholesky+jitter; `solve` para \(K\)
+- **Por qué difiere del SPEC:** SPEC §2.5.3 no especifica regeneración vs reuso ni jitter
+- **Impacto potencial:** drift de \(P\) no-PSD / inversión inestable de \(P_{zz}\)
+- **Corrección aplicada:** documentar en `MODELO_MATEMATICO.md` §8; tests PSD/simetría/3σ
+- **Verificación:** `test_predict_preserves_symmetry_and_psd`, `test_consistency_error_within_three_sigma`
+- **Lección aprendida:** toda decisión de estabilización del filtro debe registrarse y cubrirse con test
+
 
 ---
 
