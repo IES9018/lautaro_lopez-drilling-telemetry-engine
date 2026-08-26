@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ies9018.edu.ar/schemas/surface.telemetry.v1.json",
+  "title": "SurfaceTelemetryV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "timestamp",
+    "hookload_kn",
+    "rpm_surface",
+    "torque_surface_knm",
+    "standpipe_pressure_kpa"
+  ],
+  "properties": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "UTC ISO-8601 del sample de superficie"
+    },
+    "hookload_kn": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Hookload en kilonewtons"
+    },
+    "rpm_surface": {
+      "type": "number",
+      "minimum": 0,
+      "description": "RPM del top-drive / mesa"
+    },
+    "torque_surface_knm": {
+      "type": "number",
+      "description": "Torque de superficie en kN·m"
+    },
+    "standpipe_pressure_kpa": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Presión de standpipe en kPa"
+    }
+  }
+}

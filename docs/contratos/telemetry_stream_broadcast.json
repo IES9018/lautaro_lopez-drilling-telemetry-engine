@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ies9018.edu.ar/schemas/broadcast.state.v1.json",
+  "title": "BroadcastStateV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "timestamp",
+    "frame_id",
+    "ukf_state",
+    "torsional_deformation_rad",
+    "ssi",
+    "alert_level"
+  ],
+  "properties": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "frame_id": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "ukf_state": {
+      "type": "object",
+      "required": ["theta_rad", "omega_rad_s"],
+      "additionalProperties": false,
+      "properties": {
+        "theta_rad": {
+          "type": "array",
+          "items": { "type": "number" },
+          "description": "Ángulos nodales estimados (rad)"
+        },
+        "omega_rad_s": {
+          "type": "array",
+          "items": { "type": "number" },
+          "description": "Velocidades angulares nodales estimadas (rad/s)"
+        },
+        "rpm_bit_est": {
+          "type": "number",
+          "minimum": 0
+        },
+        "torque_bit_est_knm": {
+          "type": "number"
+        }
+      }
+    },
+    "torsional_deformation_rad": {
+      "type": "array",
+      "items": { "type": "number" },
+      "description": "Deformación torsional por nodo para malla 3D"
+    },
+    "ssi": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Stick-Slip Severity Index"
+    },
+    "alert_level": {
+      "type": "string",
+      "enum": ["normal", "warning", "critical"]
+    }
+  }
+}

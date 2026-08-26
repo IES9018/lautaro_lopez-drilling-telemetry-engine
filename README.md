@@ -17,7 +17,7 @@ Motor de estimación de estado en tiempo real y gemelo digital para monitoreo de
 
 ## Estado del proyecto
 
-**Fase actual:** núcleo Physics + UKF + simulador de telemetría sintética (Sprint 1 en curso).
+**Fase actual:** Physics + UKF + simulador + **pipeline de streaming** (Sprint 1 en curso).
 
 | Entregable | Estado |
 |------------|--------|
@@ -29,27 +29,32 @@ Motor de estimación de estado en tiempo real y gemelo digital para monitoreo de
 | SSI calculator | Listo |
 | UKF (sigma points Van der Merwe + predict/update) | Listo |
 | Simulador de pozo (`well_generator`) + retardo MWD | Listo |
-| Tests unitarios + integración; cobertura 100% en módulos core | Listo |
-| `MODELO_MATEMATICO.md` + auditoría IA (A-001…A-004) | Listo |
+| Contratos JSON Schema + DTOs Pydantic v2 | Listo |
+| TimeSyncBuffer + fixed-lag MWD | Listo |
+| FastAPI WebSocket ~60 FPS + REST control | Listo |
+| Tests unitarios + integración; cobertura ≥85% pipeline | Listo |
+| `MODELO_MATEMATICO.md` + `DIAGRAMAS_C4.md` + auditoría (A-001…A-005) | Listo |
 | Tooling (`pyproject.toml`, CI) | Pendiente |
-| Pipeline Redis + WebSocket | Pendiente |
+| Redis Streams (RF-10) | Diferido (buffer in-memory Sprint 1) |
 | UI Three.js + LLM Advisor | Pendiente (P3) |
 
-**Rama de trabajo reciente:** `feature/simulator-ground-truth` → PR a `develop`.
+**Rama de trabajo reciente:** `feature/pipeline-stream-ingest` → PR a `develop`.
 
 ## Arquitectura (4 capas)
 
 ```text
 Superficie 100 Hz ──┐
-                    ├──► Ingest + Redis Streams ──► Physics Engine (RK4 + UKF + SSI)
-MWD ~0.05 Hz ───────┘                                      │
-                                                           ├──► FastAPI WebSocket ~60 FPS ──► Next.js / Three.js
-                                                           └──► LLM Advisor (si SSI > 1.0) ──► SOP
+                    ├──► Ingest (JSON Schema + Pydantic) ──► TimeSyncBuffer ──► UKF + SSI
+MWD ~0.05 Hz ───────┘         │                                    │
+                              │                                    ├──► FastAPI WebSocket ~60 FPS
+                              └── fixed-lag replay (retardo) ──────┘
 ```
 
-Detalle: [`SPEC.md`](SPEC.md) · matemáticas: [`docs/arquitectura/MODELO_MATEMATICO.md`](docs/arquitectura/MODELO_MATEMATICO.md) · stack: [`docs/adr/ADR-001-stack-tecnologico.md`](docs/adr/ADR-001-stack-tecnologico.md)
+Detalle: [`SPEC.md`](SPEC.md) · C4: [`docs/arquitectura/DIAGRAMAS_C4.md`](docs/arquitectura/DIAGRAMAS_C4.md) · matemáticas: [`docs/arquitectura/MODELO_MATEMATICO.md`](docs/arquitectura/MODELO_MATEMATICO.md)
 
-## Núcleo implementado (`src/engine/`)
+## Núcleo implementado
+
+### Physics Engine (`src/engine/`)
 
 | Módulo | Rol |
 |--------|-----|
@@ -61,13 +66,23 @@ Detalle: [`SPEC.md`](SPEC.md) · matemáticas: [`docs/arquitectura/MODELO_MATEMA
 | `kalman/ukf_estimator.py` | UKF `predict` / `update` sobre la dinámica FEM |
 | `simulator/well_generator.py` | Ground truth + ruido + retardo acústico MWD |
 
+### Data Pipeline (`src/pipeline/`)
+
+| Módulo | Rol |
+|--------|-----|
+| `ingest/schema_validation.py` | Validación JSON Schema (`docs/contratos/`) |
+| `api/schemas/*` | DTOs Pydantic v2 (`Surface` / `Mwd` / `Broadcast`) |
+| `buffer/time_sync_buffer.py` | Journal circular fixed-lag O(1) |
+| `orchestration/*` | Orquestador Simulator+UKF+SSI + `h(x)` |
+| `api/app.py` | FastAPI lifespan + REST + `/ws/telemetry` |
+
 ## Stack
 
 | Capa | Tecnología |
 |------|------------|
 | Núcleo | Python 3.12+, NumPy (RK4/UKF propios) |
-| API / WS | FastAPI (pendiente) |
-| Buffer | Redis Streams (pendiente) |
+| API / WS | FastAPI + WebSockets ~60 FPS |
+| Buffer | TimeSyncBuffer in-memory (Redis diferido) |
 | UI | Next.js, Three.js, TypeScript strict (pendiente) |
 | Calidad | mypy --strict, pytest, coverage; Ruff/Bandit pendientes en CI |
 
@@ -75,7 +90,7 @@ Detalle: [`SPEC.md`](SPEC.md) · matemáticas: [`docs/arquitectura/MODELO_MATEMA
 
 ```text
 src/engine/{physics,kalman,simulator}   # Physics Engine + UKF/SSI
-src/pipeline/{ingest,buffer,api}        # Ingest / Redis / FastAPI
+src/pipeline/{ingest,buffer,api,orchestration}
 src/advisor/prompts                     # LLM Advisor
 src/ui/                                 # Gemelo digital (TypeScript)
 tests/{unit,property,integration}
@@ -90,9 +105,10 @@ docs/{adr,arquitectura,auditoria,contratos}
 | [`SPEC.md`](SPEC.md) | Especificación SSOT (RF, Non-Goals, física, contratos) |
 | [`INSTRUCTIONS.md`](INSTRUCTIONS.md) | Runbook operativo (Git Flow, checklist PR, comandos) |
 | [`docs/arquitectura/MODELO_MATEMATICO.md`](docs/arquitectura/MODELO_MATEMATICO.md) | Ecuaciones FEM, SSI, UKF |
+| [`docs/arquitectura/DIAGRAMAS_C4.md`](docs/arquitectura/DIAGRAMAS_C4.md) | Contexto / contenedores / streaming |
 | [`docs/auditoria/auditoria-sprint1.md`](docs/auditoria/auditoria-sprint1.md) | Auditoría crítica de código IA |
+| [`docs/contratos/`](docs/contratos/) | JSON Schema canónicos |
 | [`.cursor/rules/`](.cursor/rules/) | Enforcement por dominio |
-| [`.github/PULL_REQUEST_TEMPLATE.md`](.github/PULL_REQUEST_TEMPLATE.md) | Checklist de PR |
 
 ## Git Flow (obligatorio)
 
@@ -106,29 +122,26 @@ feature/<tema>  →  PR → develop  →  PR → main
 
 ## Desarrollo local
 
-Con el venv del repo (cuando exista `.venv`):
-
 ```bash
 python3 -m venv .venv
-.venv/bin/pip install numpy pytest coverage mypy
+.venv/bin/pip install -r requirements.txt
 
-.venv/bin/python -m pytest tests/unit -q
-.venv/bin/mypy --strict src/engine
+.venv/bin/python -m pytest tests/ -q
+.venv/bin/mypy --strict src/pipeline src/engine
 # Cobertura (evitar pytest-cov en Python 3.14; usar coverage run):
-.venv/bin/coverage run --source=src -m pytest tests/unit -q
-.venv/bin/coverage report -m --include='src/engine/*'
+.venv/bin/coverage run --source=src -m pytest tests/ -q
+.venv/bin/coverage report -m --include='src/pipeline/*'
 ```
-
-El scaffolding formal (`pyproject.toml`, Ruff, Bandit, CI) se agrega en un paso posterior del Sprint 1. Checklist completo: [`INSTRUCTIONS.md`](INSTRUCTIONS.md).
 
 ## Requerimientos funcionales (resumen)
 
 | ID | Descripción | Sprint 1 |
 |----|-------------|----------|
-| RF-03…06 | Stribeck, RK4, UKF, SSI | Hecho (núcleo) |
+| RF-03…06 | Stribeck, RK4, UKF, SSI | Hecho |
+| RF-01/02/08 | Ingest schemas + WebSocket 60 FPS | Hecho (pipeline) |
 | RF-11/12 | Tests, tipado, auditoría IA | En curso |
-| RF-01/02/10 | Ingest + Redis Streams | Pendiente |
-| RF-08/09 | WebSocket 60 FPS + UI 3D | Pendiente (P3) |
+| RF-10 | Redis Streams | Diferido (buffer in-memory) |
+| RF-09 | UI 3D | Pendiente (P3) |
 | RF-07 | Advisor LLM si `SSI > 1.0` | Pendiente (P3) |
 
 Lista completa y Non-Goals: [`SPEC.md` §1](SPEC.md).

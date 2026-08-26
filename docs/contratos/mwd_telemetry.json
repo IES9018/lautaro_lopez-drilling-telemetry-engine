@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ies9018.edu.ar/schemas/mwd.telemetry.v1.json",
+  "title": "MwdTelemetryV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "timestamp",
+    "acoustic_delay_s",
+    "rpm_downhole",
+    "torque_downhole_knm",
+    "wob_kn"
+  ],
+  "properties": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "UTC ISO-8601 del sample MWD (tiempo de origen de la medición)"
+    },
+    "acoustic_delay_s": {
+      "type": "number",
+      "minimum": 15,
+      "maximum": 45,
+      "description": "Retardo acústico mud-pulse estimado en segundos"
+    },
+    "rpm_downhole": {
+      "type": "number",
+      "minimum": 0,
+      "description": "RPM estimada/reportada en fondo"
+    },
+    "torque_downhole_knm": {
+      "type": "number",
+      "description": "Torque de fondo en kN·m"
+    },
+    "wob_kn": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Weight on Bit en kN"
+    }
+  }
+}

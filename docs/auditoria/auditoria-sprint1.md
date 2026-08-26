@@ -45,6 +45,7 @@ Este informe aporta a la rúbrica de evaluación (**10% Documentación / Auditor
 | A-002 | 2026-08-25 | `src/engine/physics/drillstring_fem.py` | convergencia numérica | SPEC §2.2 indica “velocidad o torque prescrito” en superficie sin fijar la ley de accionamiento. Se modela top-drive como \(T_{drive}=c_{drive}(u_{top}-\omega_0)\) (amortiguamiento proporcional al error de velocidad). | Documentar en `MODELO_MATEMATICO.md`; validar con equilibrio rígido (`test_steady_state_torque_balance`). Decisión de modelado explícita, no alucinación. | `tests/unit/test_drillstring_fem.py` · docs/arquitectura/MODELO_MATEMATICO.md | lautaro_lopez | cerrado |
 | A-003 | 2026-08-25 | `src/engine/kalman/ukf_estimator.py`, `sigma_points.py` | convergencia numérica | SPEC §2.5.3 no fija si `update` regenera sigma points desde \((x^-,P^-)\) o reutiliza los propagados por `predict`. Se adopta reuso de sigma points propagados (Van der Merwe), Cholesky+jitter con backoff, re-simetrización de \(P\), y `np.linalg.solve` en vez de inversa explícita para \(K\). | Documentar en `MODELO_MATEMATICO.md` §8; tests de simetría/PSD y consistencia 3σ. | `tests/unit/test_ukf_estimator.py` · `tests/unit/test_sigma_points.py` | lautaro_lopez | cerrado |
 | A-004 | 2026-08-25 | `src/engine/simulator/well_generator.py` | convergencia numérica | Integración a ~1000 Hz (`dt_internal=1e-3`) vs muestreo de telemetría 100 Hz (`dt=0.01`). Si `dt` no es múltiplo exacto de `dt_internal`, se usa `n_sub=round(dt/dt_internal)` y `sub_dt=dt/n_sub` para conservar el horizonte `dt` a costa de un paso RK4 ligeramente distinto del nominal. | Documentar trade-off; preferir `dt` múltiplo de `dt_internal` en escenarios de producción. | `tests/integration/test_well_generator.py` | lautaro_lopez | cerrado |
+| A-005 | 2026-08-25 | `src/pipeline/buffer/time_sync_buffer.py`, `orchestration/simulation_orchestrator.py`, `api/connection_manager.py` | mala práctica / arquitectura | Fixed-lag smoothing real para MWD (15–45 s): journal de `(x,P,u,z)` en `deque` (~4500 entradas × ~1.25 KB ≈ 5.6 MB con N=6). Replay offload a `asyncio.to_thread`; drop silencioso si el origen MWD es más viejo que la ventana. Tick físico 100 Hz desacoplado del broadcast 60 FPS. Backpressure por cliente (`Queue` maxsize=2, drop-oldest). Redis Streams (RF-10) diferido a favor del buffer en memoria. | Documentar trade-offs; tests de alineación, fixed-lag determinista y ciclo de vida WS. | `tests/integration/test_time_sync_buffer.py`, `test_mwd_fixed_lag_correction.py`, `test_websocket_lifecycle.py` · `DIAGRAMAS_C4.md` | lautaro_lopez | cerrado |
 
 > Agregar una fila por hallazgo. No borrar filas históricas: marcar estado `cerrado`.
 
@@ -67,13 +68,13 @@ Este informe aporta a la rúbrica de evaluación (**10% Documentación / Auditor
 
 | Métrica | Valor |
 |---------|-------|
-| Total de hallazgos registrados | 4 |
+| Total de hallazgos registrados | 5 |
 | Alucinaciones | 0 |
 | Convergencia numérica | 4 |
-| Malas prácticas | 0 |
-| Hallazgos cerrados | 4 |
+| Malas prácticas | 1 |
+| Hallazgos cerrados | 5 |
 | Hallazgos abiertos | 0 |
-| PRs con código IA auditado | 4 |
+| PRs con código IA auditado | 5 |
 
 ---
 
@@ -120,6 +121,17 @@ Este informe aporta a la rúbrica de evaluación (**10% Documentación / Auditor
 - **Corrección aplicada:** conservar horizonte `dt`; preferir múltiplos exactos en configs
 - **Verificación:** `tests/integration/test_well_generator.py`
 - **Lección aprendida:** documentar política de submuestreo cuando haya dos tasas (física vs telemetría)
+
+### Detalle A-005
+
+- **Tipo:** mala práctica / arquitectura (trade-off explícito de pipeline)
+- **Agente / herramienta:** Data Pipeline & Distributed Systems Architect (Cursor)
+- **Qué generó la IA (resumen):** `TimeSyncBuffer` + fixed-lag replay UKF efímero + `ConnectionManager` con colas acotadas
+- **Por qué es un trade-off:** SPEC RF-10 pide Redis Streams; Sprint 1 usa journal in-memory para modelar el retardo MWD con fixed-lag real (costo CPU/memoria acotado, sin dependencia Redis). Drop de MWD fuera de ventana evita crashes pero pierde información.
+- **Impacto potencial:** memoria ~5–6 MB; picos de CPU en replay; clientes lentos pierden frames (drop-oldest)
+- **Corrección aplicada:** documentar en `DIAGRAMAS_C4.md` y este hallazgo; offload a thread; métrica `mwd_drops`
+- **Verificación:** tests de buffer, fixed-lag determinista, WebSocket lifecycle
+- **Lección aprendida:** toda decisión de buffer/fusión retardada debe fijar política de drop y backpressure por escrito
 
 
 ---
