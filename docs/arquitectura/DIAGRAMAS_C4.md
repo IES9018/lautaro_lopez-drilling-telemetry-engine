@@ -127,3 +127,33 @@ flowchart LR
 | Trigger | `SSI > 1.0`, fire-and-forget + cooldown 30 s |
 
 El Advisor **no** bloquea el lazo RK4/UKF: se dispara con `asyncio.create_task` desde el tick de broadcast.
+
+---
+
+## 5. Digital Twin UI (`src/ui/`)
+
+```mermaid
+flowchart LR
+  WS["ws://localhost:8000/ws/telemetry"] --> Hook["useTelemetryStream"]
+  Hook -->|"useRef latestFrame 60FPS"| Canvas["DrillStringCanvas R3F"]
+  Hook -->|"throttled state ~30Hz"| Gauges["SsiGauge RpmDualGauge"]
+  Hook -->|"advisor events"| Feed["AdvisorFeed"]
+  Controls["SimulationControls"] -->|"REST /api/v1/simulation"| API["FastAPI"]
+```
+
+| Pieza | Rol |
+|-------|-----|
+| `useTelemetryStream` | WS resiliente; `frameRef` para R3F; throttle React widgets (A-007) |
+| `DrillStringMesh` | Cilindros nodales; rotación `torsional_deformation_rad`; gradiente de color |
+| `SsiGauge` / `RpmDualGauge` | Instrumental; **no** recalcula SSI |
+| `AdvisorFeed` | Tarjetas SOP del envelope `advisor_recommendation` |
+| `SimulationControls` | REST start/stop/preset |
+
+### Pipeline de render
+
+1. Envelope JSON → `parseWsMessage` / type guards.
+2. Telemetría → `frameRef.current` (sin `setState` en hot path).
+3. `useFrame` en R3F lee el ref y actualiza rotación/color de mallas.
+4. Widgets React reciben `latestFrame` como máximo ~30 Hz.
+
+Stack: Next.js App Router + React Three Fiber + Three.js + TypeScript `strict`.
