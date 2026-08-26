@@ -1,0 +1,15 @@
+---
+description: Data Pipeline — ingest, Redis Streams, FastAPI, WebSockets y schemas
+globs: src/pipeline/**/*
+alwaysApply: false
+---
+
+# Data Pipeline (`src/pipeline/`)
+
+- Validar payloads contra JSON Schema de `SPEC.md` / `docs/contratos/` (`additionalProperties: false`).
+- Superficie 100 Hz → `surface.telemetry.v1`; MWD → `mwd.telemetry.v1`; broadcast → `broadcast.state.v1`.
+- Buffer: Redis Streams. API: FastAPI + WebSocket ~60 FPS.
+- No recalcular SSI en el cliente ni en la API: el Physics Engine es la fuente del índice.
+- No modificar `src/engine/**` (fórmulas, RK4, UKF).
+- Sin secretos en código; Redis/LLM solo por variables de entorno.
+- Sin `eval`, `pickle` ni deserialización insegura de telemetría.

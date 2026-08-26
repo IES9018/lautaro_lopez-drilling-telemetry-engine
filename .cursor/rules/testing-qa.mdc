@@ -1,0 +1,14 @@
+---
+description: QA — cobertura ≥85%, Hypothesis e invariantes numéricos
+globs: tests/**/*
+alwaysApply: false
+---
+
+# Testing / QA (`tests/`)
+
+- Escribir **solo** en `tests/`. Correcciones de producción → dominio dueño.
+- Cobertura mínima de `src/`: **85%** (`pytest-cov`).
+- `tests/unit/`, `tests/property/` (Hypothesis), `tests/integration/`.
+- Invariantes: energía sin fricción, SSI ≥ 0, schemas rechazan inválidos.
+- Estabilidad: orden ~O(h⁴) de RK4; covarianza UKF definida positiva (PSD).
+- Determinismo: semillas fijas; no asertar contra reloj de sistema.

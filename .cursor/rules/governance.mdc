@@ -1,0 +1,42 @@
+---
+description: Gobernanza PP3 — SSOT, dominios de agentes, Git Flow y restricciones globales
+alwaysApply: true
+---
+
+# Gobernanza del proyecto (Cursor)
+
+- **SSOT técnico:** `SPEC.md`. Ante conflicto IA vs SPEC, prevalece `SPEC.md`.
+- **Runbook:** `INSTRUCTIONS.md`. Stack: `docs/adr/ADR-001-stack-tecnologico.md`.
+- Repo: `lautaro_lopez-drilling-telemetry-engine` · PP3 IES 9-018 · Sprint 1.
+
+## Dominios (escritura restringida)
+
+| Dominio | Escribe solo en |
+|---------|-----------------|
+| Physics | `src/engine/**` |
+| Pipeline | `src/pipeline/**` |
+| Advisor | `src/advisor/**` |
+| UI | `src/ui/**` |
+| QA | `tests/**` (puede leer todo) |
+| Docs | `docs/**`, `.github/**`, `.cursor/rules/**` |
+
+- Un PR = un dominio. Cross-domain solo con justificación + aprobación del alumno.
+- Physics no implementa HTTP/UI. Pipeline no altera RK4/UKF/fórmulas.
+- QA no “arregla” producción: solo tests. Docs no mete lógica en `src/`.
+
+## Git Flow
+
+`feature/<tema>` → PR → `develop` → PR → `main`. Push directo a `main`/`develop` bloqueado.
+
+Commits: `feat:`, `fix:`, `docs:`, `ci:`, `chore:`, `test:` únicamente.
+
+## Prohibido
+
+- Código de relleno no alineado a `SPEC.md`.
+- Cajas negras para RK4/UKF (ver rule de physics).
+- Secretos hardcodeados; `eval`/pickle sobre telemetría.
+- Cambiar contratos sin actualizar `SPEC.md` / `docs/contratos/`.
+
+## Auditoría IA
+
+Fórmulas, constantes o convergencia generadas por IA → registrar en `docs/auditoria/auditoria-sprint1.md`.

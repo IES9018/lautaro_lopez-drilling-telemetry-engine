@@ -1,0 +1,24 @@
+---
+description: Physics Engine — RK4, Stribeck, UKF y SSI sin cajas negras
+globs: src/engine/**/*
+alwaysApply: false
+---
+
+# Physics Engine (`src/engine/`)
+
+- Implementar RK4 y UKF en código **propio**, determinista y vectorizado (NumPy).
+- Permitido: `numpy`, `scipy` (álgebra lineal puntual). Prohibido: frameworks que encapsulen el ciclo predict/update o el integrador de la sarta.
+- Constantes y parámetros trazables a `SPEC.md` §2.
+- Tipado estricto; preferir `numpy.typing` (`NDArray`, `Float64`).
+- Semillas fijas: `numpy.random.default_rng(seed)` en trayectorias reproducibles.
+- No crear endpoints FastAPI ni código en `src/ui/` desde este dominio.
+- Cambios de fórmula/convergencia → fila en `docs/auditoria/auditoria-sprint1.md`.
+
+```python
+# ❌ BAD — caja negra
+from magic_ukf import UnscentedKalmanFilter
+
+# ✅ GOOD — ciclo sigma/predict/update explícito en este repo
+def ukf_predict(sigma: NDArray[np.float64], ...) -> NDArray[np.float64]:
+    ...
+```

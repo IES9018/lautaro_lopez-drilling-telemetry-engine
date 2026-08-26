@@ -1,0 +1,13 @@
+---
+description: LLM Advisor — trigger SSI>1.0, prompts versionados y anti prompt-injection
+globs: src/advisor/**/*
+alwaysApply: false
+---
+
+# Advisor / LLM (`src/advisor/`)
+
+- Activación por evento `SSI > 1.0` (alerta `critical`); no bloquear el lazo RK4/UKF.
+- Prompts versionados en `src/advisor/prompts/`.
+- Entrada: solo features validados/tipados — no concatenar JSON crudo de telemetría como system prompt.
+- Credenciales del proveedor LLM solo por variables de entorno.
+- No modificar Physics Engine ni schemas de ingest desde este dominio.

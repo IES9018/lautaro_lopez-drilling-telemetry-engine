@@ -1,0 +1,14 @@
+---
+description: Digital Twin UI — Next.js, Three.js, TypeScript strict
+globs: src/ui/**/*
+alwaysApply: false
+---
+
+# Digital Twin UI (`src/ui/`)
+
+- Stack: Next.js + Three.js + TypeScript con `"strict": true`.
+- Contratos de telemetría/broadcast alineados a `SPEC.md` / `docs/contratos/`.
+- Prohibido `@ts-ignore` / `@ts-expect-error` sin justificación en el PR.
+- `src/ui/` no es paquete Python (no agregar `__init__.py`).
+- No implementar RK4/UKF ni lógica de Physics Engine en el frontend.
+- `alert_level` / SSI: mostrar lo que llega del broadcast; no recalcular física en el cliente.

@@ -1,0 +1,13 @@
+---
+description: Tipado Python estricto (mypy --strict) para motor, pipeline, advisor y tests
+globs: "**/*.py"
+alwaysApply: false
+---
+
+# Python tipado estricto
+
+- Type hints completos en firmas públicas y privadas; listo para `mypy --strict`.
+- Prohibido `Any` sin: `# ANY-JUSTIFIED: <motivo>` en la misma línea.
+- Prohibido `# type: ignore` sin justificación en el PR (física/UKF → también auditoría).
+- Usar `dict`/`list` genéricos o `TypedDict`/`dataclass`; no `typing.Dict`/`List` legacy.
+- Arrays: `numpy.typing.NDArray`.

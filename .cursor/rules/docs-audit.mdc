@@ -1,0 +1,13 @@
+---
+description: Docs, ADR, auditoría IA y plantillas GitHub
+globs: docs/**/*,.github/**/*,.cursor/rules/**/*
+alwaysApply: false
+---
+
+# Audit / Docs
+
+- Mantener `SPEC.md`, ADRs (`docs/adr/`), contratos, PR template y `docs/auditoria/`.
+- No introducir lógica ejecutable en `src/` desde este dominio.
+- Hallazgos de IA: tipo `alucinación` | `convergencia numérica` | `mala práctica` en `auditoria-sprint1.md`.
+- Cambios de stack → nuevo ADR (no silenciar en commits sueltos).
+- Actualizar referencias cruzadas (`INSTRUCTIONS.md`, SPEC) si cambia gobernanza.
