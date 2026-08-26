@@ -1,4 +1,4 @@
-"""Tests del ciclo de vida WebSocket ``/ws/telemetry``."""
+"""Tests del ciclo de vida WebSocket ``/ws/telemetry`` (envelope discriminado)."""
 
 from __future__ import annotations
 
@@ -51,17 +51,20 @@ def test_websocket_receives_valid_broadcast_frames() -> None:
     with client:
         client.post("/api/v1/simulation/start", json={"preset": "normal"})
         with client.websocket_connect("/ws/telemetry") as ws:
-            # Dar tiempo al broadcast loop (~60 FPS) a encolar frames.
             time.sleep(0.15)
             frames: list[dict[str, object]] = []
-            for _ in range(5):
+            for _ in range(10):
                 raw = ws.receive()
-                payload = _parse_ws_message(raw)
-                if payload is None:
+                envelope = _parse_ws_message(raw)
+                if envelope is None:
                     continue
-                frames.append(payload)
-                validate_payload(payload, schema)
-                dto = TelemetryStreamBroadcastDTO.model_validate(payload)
+                if envelope.get("type") != "telemetry_frame":
+                    continue
+                data = envelope.get("data")
+                assert isinstance(data, dict)
+                frames.append(data)
+                validate_payload(data, schema)
+                dto = TelemetryStreamBroadcastDTO.model_validate(data)
                 assert dto.ssi >= 0.0
                 assert dto.alert_level in ("normal", "warning", "critical")
                 if len(frames) >= 3:

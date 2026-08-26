@@ -3,15 +3,20 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 from dataclasses import dataclass, field
+from typing import Literal
 
 from fastapi import WebSocket
 from starlette.websockets import WebSocketDisconnect, WebSocketState
 
+from src.pipeline.api.advisor_store import AdvisorRecommendationRecordDTO
 from src.pipeline.api.schemas.broadcast import TelemetryStreamBroadcastDTO
 
 logger = logging.getLogger(__name__)
+
+EnvelopeType = Literal["telemetry_frame", "advisor_recommendation"]
 
 
 @dataclass
@@ -50,8 +55,25 @@ class ConnectionManager:
         slot.sender.cancel()
 
     async def broadcast(self, payload: TelemetryStreamBroadcastDTO) -> None:
-        """Encola el frame en cada cliente; descarta el más viejo si la cola está llena."""
-        data = payload.model_dump_json().encode("utf-8")
+        """Encola un envelope ``telemetry_frame``; drop-oldest si la cola está llena."""
+        envelope = {
+            "type": "telemetry_frame",
+            "data": json.loads(payload.model_dump_json()),
+        }
+        await self._enqueue_bytes(json.dumps(envelope).encode("utf-8"))
+
+    async def broadcast_advisor(
+        self,
+        record: AdvisorRecommendationRecordDTO,
+    ) -> None:
+        """Encola un envelope ``advisor_recommendation``."""
+        envelope = {
+            "type": "advisor_recommendation",
+            "data": json.loads(record.model_dump_json()),
+        }
+        await self._enqueue_bytes(json.dumps(envelope).encode("utf-8"))
+
+    async def _enqueue_bytes(self, data: bytes) -> None:
         dead: list[WebSocket] = []
         for websocket, slot in list(self._clients.items()):
             if websocket.client_state != WebSocketState.CONNECTED:
@@ -102,4 +124,4 @@ class ConnectionManager:
             self.disconnect(websocket)
 
 
-__all__ = ["ConnectionManager"]
+__all__ = ["ConnectionManager", "EnvelopeType"]
