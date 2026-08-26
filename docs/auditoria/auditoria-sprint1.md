@@ -44,6 +44,7 @@ Este informe aporta a la rúbrica de evaluación (**10% Documentación / Auditor
 | A-001 | 2026-08-25 | `src/engine/physics/friction_models.py` | convergencia numérica | SPEC §2.3 usa \(T_c+(T_s-T_c)e^{-(\|\omega\|/\omega_s)^\delta}+b\omega\) sin regularización en ω=0 (discontinua / no diferenciable en el signo). La implementación Sprint 1 usa forma regularizada con `tanh(ω/ω_ε)` y decaimiento `exp(-γ\|ω\|)` para estabilidad numérica del lazo RK4. | Documentar como variante explícita; tests de imparidad, reposo T(0)=0 y régimen asintótico. No es alucinación: es decisión de regularización. | `tests/unit/test_friction_models.py` | lautaro_lopez | cerrado |
 | A-002 | 2026-08-25 | `src/engine/physics/drillstring_fem.py` | convergencia numérica | SPEC §2.2 indica “velocidad o torque prescrito” en superficie sin fijar la ley de accionamiento. Se modela top-drive como \(T_{drive}=c_{drive}(u_{top}-\omega_0)\) (amortiguamiento proporcional al error de velocidad). | Documentar en `MODELO_MATEMATICO.md`; validar con equilibrio rígido (`test_steady_state_torque_balance`). Decisión de modelado explícita, no alucinación. | `tests/unit/test_drillstring_fem.py` · docs/arquitectura/MODELO_MATEMATICO.md | lautaro_lopez | cerrado |
 | A-003 | 2026-08-25 | `src/engine/kalman/ukf_estimator.py`, `sigma_points.py` | convergencia numérica | SPEC §2.5.3 no fija si `update` regenera sigma points desde \((x^-,P^-)\) o reutiliza los propagados por `predict`. Se adopta reuso de sigma points propagados (Van der Merwe), Cholesky+jitter con backoff, re-simetrización de \(P\), y `np.linalg.solve` en vez de inversa explícita para \(K\). | Documentar en `MODELO_MATEMATICO.md` §8; tests de simetría/PSD y consistencia 3σ. | `tests/unit/test_ukf_estimator.py` · `tests/unit/test_sigma_points.py` | lautaro_lopez | cerrado |
+| A-004 | 2026-08-25 | `src/engine/simulator/well_generator.py` | convergencia numérica | Integración a ~1000 Hz (`dt_internal=1e-3`) vs muestreo de telemetría 100 Hz (`dt=0.01`). Si `dt` no es múltiplo exacto de `dt_internal`, se usa `n_sub=round(dt/dt_internal)` y `sub_dt=dt/n_sub` para conservar el horizonte `dt` a costa de un paso RK4 ligeramente distinto del nominal. | Documentar trade-off; preferir `dt` múltiplo de `dt_internal` en escenarios de producción. | `tests/integration/test_well_generator.py` | lautaro_lopez | cerrado |
 
 > Agregar una fila por hallazgo. No borrar filas históricas: marcar estado `cerrado`.
 
@@ -66,13 +67,13 @@ Este informe aporta a la rúbrica de evaluación (**10% Documentación / Auditor
 
 | Métrica | Valor |
 |---------|-------|
-| Total de hallazgos registrados | 3 |
+| Total de hallazgos registrados | 4 |
 | Alucinaciones | 0 |
-| Convergencia numérica | 3 |
+| Convergencia numérica | 4 |
 | Malas prácticas | 0 |
-| Hallazgos cerrados | 3 |
+| Hallazgos cerrados | 4 |
 | Hallazgos abiertos | 0 |
-| PRs con código IA auditado | 3 |
+| PRs con código IA auditado | 4 |
 
 ---
 
@@ -108,6 +109,17 @@ Este informe aporta a la rúbrica de evaluación (**10% Documentación / Auditor
 - **Corrección aplicada:** documentar en `MODELO_MATEMATICO.md` §8; tests PSD/simetría/3σ
 - **Verificación:** `test_predict_preserves_symmetry_and_psd`, `test_consistency_error_within_three_sigma`
 - **Lección aprendida:** toda decisión de estabilización del filtro debe registrarse y cubrirse con test
+
+### Detalle A-004
+
+- **Tipo:** convergencia numérica (trade-off simulación)
+- **Agente / herramienta:** Physics & Simulation Engine (Cursor)
+- **Qué generó la IA (resumen):** `n_sub=round(dt/dt_internal)`, `sub_dt=dt/n_sub` en `WellSimulator.step`
+- **Por qué es un trade-off:** 1000 Hz interno vs 100 Hz de telemetría; `dt` no siempre múltiplo exacto
+- **Impacto potencial:** error local de paso RK4 vs horizonte de tiempo exacto
+- **Corrección aplicada:** conservar horizonte `dt`; preferir múltiplos exactos en configs
+- **Verificación:** `tests/integration/test_well_generator.py`
+- **Lección aprendida:** documentar política de submuestreo cuando haya dos tasas (física vs telemetría)
 
 
 ---
