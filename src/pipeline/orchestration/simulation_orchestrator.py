@@ -16,12 +16,21 @@ from src.engine.kalman.sigma_points import SigmaPointParameters, compute_sigma_p
 from src.engine.kalman.ssi_calculator import StickSlipRegime, compute_ssi
 from src.engine.kalman.ukf_estimator import UnscentedKalmanFilter
 from src.engine.physics.drillstring_fem import StateDerivativeFn, build_state_derivative
+from src.advisor.llm_diagnostics import (
+    DeterministicMockLLMProvider,
+    DrillingAdvisor,
+)
+from src.advisor.schemas import AdvisorIncidentSnapshot
 from src.engine.simulator.well_generator import (
     MwdTelemetrySample,
     ScenarioName,
     SimulatorConfig,
     WellSimulator,
     default_simulator_config,
+)
+from src.pipeline.api.advisor_store import (
+    AdvisorHistoryStore,
+    AdvisorRecommendationRecordDTO,
 )
 from src.pipeline.api.schemas.broadcast import (
     AlertLevel,
@@ -111,6 +120,9 @@ class SimulationOrchestrator:
     """
 
     config: OrchestratorConfig = field(default_factory=_default_orchestrator_config)
+    advisor: DrillingAdvisor | None = None
+    advisor_store: AdvisorHistoryStore | None = None
+    connections: ConnectionManager | None = None
     _simulator: WellSimulator = field(init=False, repr=False)
     _ukf: UnscentedKalmanFilter = field(init=False, repr=False)
     _state_derivative: StateDerivativeFn = field(init=False, repr=False)
@@ -128,6 +140,11 @@ class SimulationOrchestrator:
     _correction_tasks: set[asyncio.Task[None]] = field(
         default_factory=set, init=False, repr=False
     )
+    _advisor_tasks: set[asyncio.Task[None]] = field(
+        default_factory=set, init=False, repr=False
+    )
+    _last_surface_rpm: float = field(default=0.0, init=False, repr=False)
+    _last_torque_surface_knm: float = field(default=0.0, init=False, repr=False)
 
     def __post_init__(self) -> None:
         self._simulator = WellSimulator(self.config.simulator_config)
@@ -161,6 +178,11 @@ class SimulationOrchestrator:
         self._r_mwd = np.diag(np.asarray(self.config.r_mwd_diag, dtype=np.float64))
         self._omega_window = deque(maxlen=self.config.ssi_window_size)
         self._correction_tasks = set()
+        self._advisor_tasks = set()
+        if self.advisor is None:
+            self.advisor = DrillingAdvisor(provider=DeterministicMockLLMProvider())
+        if self.advisor_store is None:
+            self.advisor_store = AdvisorHistoryStore()
 
     def _rebuild_derivative(self) -> None:
         self._state_derivative = build_state_derivative(
@@ -186,6 +208,11 @@ class SimulationOrchestrator:
         self._ukf._predicted_sigma_points = None  # noqa: SLF001
         self._latest_broadcast = None
         self._running = True
+        if self.advisor_store is not None:
+            self.advisor_store.clear()
+        if self.advisor is not None:
+            self.advisor._in_incident = False  # noqa: SLF001
+            self.advisor._last_emitted_monotonic = None  # noqa: SLF001
 
     def stop(self) -> None:
         """Detiene el loop físico."""
@@ -247,6 +274,8 @@ class SimulationOrchestrator:
 
         step = self._simulator.step(dt, u_rpm, wob)
         surface = self._simulator.get_surface_telemetry()
+        self._last_surface_rpm = float(surface.rpm_surface)
+        self._last_torque_surface_knm = float(surface.torque_surface_knm)
         z_surface = np.asarray(
             [surface.rpm_surface, surface.torque_surface_knm],
             dtype=np.float64,
@@ -328,6 +357,39 @@ class SimulationOrchestrator:
             alert_level=alert,
         )
         self._latest_broadcast = broadcast
+
+        snapshot = AdvisorIncidentSnapshot(
+            timestamp=ts,
+            surface_rpm=max(0.0, self._last_surface_rpm),
+            estimated_bit_rpm=rpm_bit,
+            wob_kn=self.config.wob_kn,
+            ssi=ssi_val,
+            regime=alert,
+            torque_contrast=self._last_torque_surface_knm - torque_bit,
+        )
+        task = asyncio.create_task(self._maybe_trigger_advisor(snapshot))
+        self._advisor_tasks.add(task)
+        task.add_done_callback(self._advisor_tasks.discard)
+
+    async def _maybe_trigger_advisor(
+        self,
+        snapshot: AdvisorIncidentSnapshot,
+    ) -> None:
+        """Evalúa el Advisor sin bloquear el tick físico; emite REST/WS si hay rec."""
+        if self.advisor is None:
+            return
+        recommendation = await self.advisor.evaluate_telemetry(snapshot)
+        if recommendation is None:
+            return
+        record = AdvisorRecommendationRecordDTO(
+            recommendation=recommendation,
+            triggered_at=snapshot.timestamp,
+            snapshot=snapshot,
+        )
+        if self.advisor_store is not None:
+            self.advisor_store.append(record)
+        if self.connections is not None:
+            await self.connections.broadcast_advisor(record)
 
     def _replay_fixed_lag(
         self,

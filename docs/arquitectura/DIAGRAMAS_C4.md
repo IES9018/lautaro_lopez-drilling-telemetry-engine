@@ -90,3 +90,40 @@ flowchart LR
 ### Backpressure WebSocket
 
 Cada cliente tiene una `asyncio.Queue` acotada (`maxsize=2`, política *drop-oldest*). Un cliente lento no bloquea el broadcast ni acumula memoria ilimitada.
+
+### Envelope WebSocket (wire format)
+
+Los mensajes en `/ws/telemetry` usan un envelope discriminado:
+
+```json
+{"type": "telemetry_frame", "data": { /* broadcast.state.v1 */ }}
+{"type": "advisor_recommendation", "data": { /* AdvisorRecommendationRecordDTO */ }}
+```
+
+---
+
+## 4. Advisor LLM (Capa 4)
+
+```mermaid
+flowchart LR
+  ORC["SimulationOrchestrator._refresh_broadcast"] -->|"ssi, regime, rpm, torque"| SNAP["AdvisorIncidentSnapshot"]
+  SNAP --> ADV["DrillingAdvisor.evaluate_telemetry"]
+  ADV -->|"cooldown ok"| SOP["drilling_sop prompts"]
+  SOP --> PROV["LLMProviderProtocol.generate"]
+  PROV --> ADV
+  ADV -->|"AdvisorRecommendation valida"| HIST["AdvisorHistoryStore"]
+  HIST --> REST["GET /api/v1/advisor/recommendations"]
+  ADV --> BCAST["ConnectionManager.broadcast_advisor"]
+  BCAST --> WS["/ws/telemetry envelope advisor_recommendation"]
+  ADV -->|"suprimido o error"| NONE["None sin bloquear loop 100Hz"]
+```
+
+| Pieza | Rol |
+|-------|-----|
+| `src/advisor/schemas.py` | Snapshot / Recommendation tipados + límites seguros |
+| `src/advisor/prompts/drilling_sop.py` | System/user prompts SOP + `sanitize_numeric` |
+| `src/advisor/llm_diagnostics.py` | `DrillingAdvisor` + mock/adaptadores LLM |
+| `src/pipeline/api/advisor_store.py` | Historial REST |
+| Trigger | `SSI > 1.0`, fire-and-forget + cooldown 30 s |
+
+El Advisor **no** bloquea el lazo RK4/UKF: se dispara con `asyncio.create_task` desde el tick de broadcast.

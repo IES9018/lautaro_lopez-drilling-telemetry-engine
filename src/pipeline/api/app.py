@@ -8,7 +8,13 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+from src.advisor.llm_diagnostics import (
+    DeterministicMockLLMProvider,
+    DrillingAdvisor,
+)
+from src.pipeline.api.advisor_store import AdvisorHistoryStore
 from src.pipeline.api.connection_manager import ConnectionManager
+from src.pipeline.api.routers.advisor import router as advisor_router
 from src.pipeline.api.routers.simulation import router as simulation_router
 from src.pipeline.api.routers.telemetry_ws import router as telemetry_ws_router
 from src.pipeline.orchestration.simulation_orchestrator import (
@@ -21,6 +27,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Crea orquestador / conexiones y lanza loops; cancela en shutdown."""
     orchestrator: SimulationOrchestrator = app.state.orchestrator
     connections: ConnectionManager = app.state.connections
+    # Asegura que el orquestador pueda emitir advisor_recommendation por WS.
+    orchestrator.connections = connections
     physics_task = asyncio.create_task(
         orchestrator.run_physics_loop(),
         name="physics-loop",
@@ -44,6 +52,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 def create_app(
     orchestrator: SimulationOrchestrator | None = None,
     connections: ConnectionManager | None = None,
+    advisor: DrillingAdvisor | None = None,
+    advisor_store: AdvisorHistoryStore | None = None,
 ) -> FastAPI:
     """Factory de la app FastAPI.
 
@@ -53,14 +63,34 @@ def create_app(
         Instancia inyectable (tests); si es ``None`` se crea con defaults.
     connections : ConnectionManager or None
         Gestor de WebSockets inyectable.
+    advisor : DrillingAdvisor or None
+        Advisor LLM inyectable (default: mock determinista).
+    advisor_store : AdvisorHistoryStore or None
+        Historial de recomendaciones inyectable.
 
     Returns
     -------
     FastAPI
         App con lifespan, REST y WebSocket.
     """
-    orch = orchestrator if orchestrator is not None else SimulationOrchestrator()
+    store = advisor_store if advisor_store is not None else AdvisorHistoryStore()
+    adv = (
+        advisor
+        if advisor is not None
+        else DrillingAdvisor(provider=DeterministicMockLLMProvider())
+    )
     mgr = connections if connections is not None else ConnectionManager()
+    if orchestrator is not None:
+        orch = orchestrator
+        orch.advisor = adv
+        orch.advisor_store = store
+        orch.connections = mgr
+    else:
+        orch = SimulationOrchestrator(
+            advisor=adv,
+            advisor_store=store,
+            connections=mgr,
+        )
 
     app = FastAPI(
         title="Drilling Telemetry Engine — Pipeline",
@@ -69,8 +99,11 @@ def create_app(
     )
     app.state.orchestrator = orch
     app.state.connections = mgr
+    app.state.advisor = adv
+    app.state.advisor_store = store
     app.include_router(simulation_router)
     app.include_router(telemetry_ws_router)
+    app.include_router(advisor_router)
     return app
 
 
