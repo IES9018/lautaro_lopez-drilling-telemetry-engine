@@ -5,7 +5,6 @@ from __future__ import annotations
 import numpy as np
 import pytest
 from numpy.typing import NDArray
-
 from src.engine.physics.friction_models import (
     StribeckParameters,
     stribeck_friction_torque,

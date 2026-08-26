@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
-
 from src.engine.kalman.sigma_points import (
     SigmaPointParameters,
     _cholesky_with_jitter,

@@ -5,7 +5,6 @@ from __future__ import annotations
 import numpy as np
 import pytest
 from numpy.typing import NDArray
-
 from src.engine.kalman.sigma_points import SigmaPointParameters
 from src.engine.kalman.ukf_estimator import UnscentedKalmanFilter
 from src.engine.physics.drillstring_fem import (

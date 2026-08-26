@@ -127,7 +127,9 @@ def compute_sigma_points(
     p_sym = 0.5 * (cov_arr + cov_arr.T)
     n_plus_lambda = float(n) + params.lambda_
     scaled = n_plus_lambda * p_sym
-    chol = _cholesky_with_jitter(scaled, jitter=jitter, max_attempts=max_jitter_attempts)
+    chol = _cholesky_with_jitter(
+        scaled, jitter=jitter, max_attempts=max_jitter_attempts
+    )
 
     n_sigma = 2 * n + 1
     sigma = np.empty((n_sigma, n), dtype=np.float64)

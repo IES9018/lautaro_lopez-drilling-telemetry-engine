@@ -45,6 +45,7 @@ Este informe aporta a la rúbrica de evaluación (**10% Documentación / Auditor
 | A-002 | 2026-08-25 | `src/engine/physics/drillstring_fem.py` | convergencia numérica | SPEC §2.2 indica “velocidad o torque prescrito” en superficie sin fijar la ley de accionamiento. Se modela top-drive como \(T_{drive}=c_{drive}(u_{top}-\omega_0)\) (amortiguamiento proporcional al error de velocidad). | Documentar en `MODELO_MATEMATICO.md`; validar con equilibrio rígido (`test_steady_state_torque_balance`). Decisión de modelado explícita, no alucinación. | `tests/unit/test_drillstring_fem.py` · docs/arquitectura/MODELO_MATEMATICO.md | lautaro_lopez | cerrado |
 | A-003 | 2026-08-25 | `src/engine/kalman/ukf_estimator.py`, `sigma_points.py` | convergencia numérica | SPEC §2.5.3 no fija si `update` regenera sigma points desde \((x^-,P^-)\) o reutiliza los propagados por `predict`. Se adopta reuso de sigma points propagados (Van der Merwe), Cholesky+jitter con backoff, re-simetrización de \(P\), y `np.linalg.solve` en vez de inversa explícita para \(K\). | Documentar en `MODELO_MATEMATICO.md` §8; tests de simetría/PSD y consistencia 3σ. | `tests/unit/test_ukf_estimator.py` · `tests/unit/test_sigma_points.py` | lautaro_lopez | cerrado |
 | A-004 | 2026-08-25 | `src/engine/simulator/well_generator.py` | convergencia numérica | Integración a ~1000 Hz (`dt_internal=1e-3`) vs muestreo de telemetría 100 Hz (`dt=0.01`). Si `dt` no es múltiplo exacto de `dt_internal`, se usa `n_sub=round(dt/dt_internal)` y `sub_dt=dt/n_sub` para conservar el horizonte `dt` a costa de un paso RK4 ligeramente distinto del nominal. | Documentar trade-off; preferir `dt` múltiplo de `dt_internal` en escenarios de producción. | `tests/integration/test_well_generator.py` | lautaro_lopez | cerrado |
+| A-008 | 2026-08-26 | `tests/property/_torsional_energy.py` | convergencia numérica | Helper QA de energía torsional \(E=\tfrac12\sum I_i\omega_i^2+\tfrac12\theta^\mathsf{T}K\theta\) + aserción \(dE/dt\le\varepsilon\) con \(u_{top}=wob=0\). La tolerancia \(\varepsilon=10^{-4}\) J/s absorbe error local RK4; no es conservación exacta sin disipación. | Documentar fórmula vs SPEC §5.3; property test Hypothesis derandomizado. | `tests/property/test_physics_invariants.py` | lautaro_lopez | cerrado |
 
 > Agregar una fila por hallazgo. No borrar filas históricas: marcar estado `cerrado`.
 
@@ -67,13 +68,13 @@ Este informe aporta a la rúbrica de evaluación (**10% Documentación / Auditor
 
 | Métrica | Valor |
 |---------|-------|
-| Total de hallazgos registrados | 4 |
+| Total de hallazgos registrados | 5 |
 | Alucinaciones | 0 |
-| Convergencia numérica | 4 |
+| Convergencia numérica | 5 |
 | Malas prácticas | 0 |
-| Hallazgos cerrados | 4 |
+| Hallazgos cerrados | 5 |
 | Hallazgos abiertos | 0 |
-| PRs con código IA auditado | 4 |
+| PRs con código IA auditado | 5 |
 
 ---
 
@@ -120,6 +121,17 @@ Este informe aporta a la rúbrica de evaluación (**10% Documentación / Auditor
 - **Corrección aplicada:** conservar horizonte `dt`; preferir múltiplos exactos en configs
 - **Verificación:** `tests/integration/test_well_generator.py`
 - **Lección aprendida:** documentar política de submuestreo cuando haya dos tasas (física vs telemetría)
+
+### Detalle A-008
+
+- **Tipo:** convergencia numérica (invariante de energía en property test)
+- **Agente / herramienta:** DevOps/QA Agent (Cursor)
+- **Qué generó la IA (resumen):** helper \(E=\tfrac12\sum I_i\omega_i^2+\tfrac12\theta^\mathsf{T}K\theta\) y aserción \(dE/dt\le 10^{-4}\) con \(u_{top}=wob=0\)
+- **Contraste SPEC:** §5.3 pide que la energía no crezca artificialmente sin potencia externa; la tolerancia absorbe error local RK4 y la disipación física (damping / top-drive a \(u_{top}=0\)) es esperada
+- **Impacto potencial:** falso negativo flaky si \(\varepsilon\) es demasiado estricto
+- **Corrección aplicada:** \(\varepsilon\) documentado; Hypothesis `derandomize=True`; helper solo en `tests/property/`
+- **Verificación:** `tests/property/test_physics_invariants.py`
+- **Lección aprendida:** invariantes de energía van en tests QA, no en producción, hasta que el dominio physics exportue un helper oficial
 
 
 ---

@@ -51,10 +51,7 @@ class DrillstringParameters:
             msg = f"n_nodes must be >= 2, got {self.n_nodes}"
             raise ValueError(msg)
         if inertia.shape != (self.n_nodes,):
-            msg = (
-                f"inertia must have shape ({self.n_nodes},), "
-                f"got {inertia.shape}"
-            )
+            msg = f"inertia must have shape ({self.n_nodes},), got {inertia.shape}"
             raise ValueError(msg)
         if stiffness.shape != (self.n_nodes - 1,):
             msg = (
@@ -63,10 +60,7 @@ class DrillstringParameters:
             )
             raise ValueError(msg)
         if damping.shape != (self.n_nodes,):
-            msg = (
-                f"damping must have shape ({self.n_nodes},), "
-                f"got {damping.shape}"
-            )
+            msg = f"damping must have shape ({self.n_nodes},), got {damping.shape}"
             raise ValueError(msg)
         if np.any(inertia <= 0.0):
             msg = "inertia elements must be > 0"
@@ -145,8 +139,7 @@ def build_uniform_drillstring(
         raise ValueError(msg)
     if polar_moment_of_inertia_m4 <= 0.0:
         msg = (
-            "polar_moment_of_inertia_m4 must be > 0, "
-            f"got {polar_moment_of_inertia_m4}"
+            f"polar_moment_of_inertia_m4 must be > 0, got {polar_moment_of_inertia_m4}"
         )
         raise ValueError(msg)
     if total_length_m <= 0.0:

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
-
 from src.engine.simulator.well_generator import (
     NoiseConfig,
     SimulatorConfig,
@@ -14,7 +13,9 @@ from src.engine.simulator.well_generator import (
 
 
 def test_reproducibility_with_fixed_seed() -> None:
-    cfg = default_simulator_config(seed=99, acoustic_delay_sec=5.0, mwd_interval_sec=2.0)
+    cfg = default_simulator_config(
+        seed=99, acoustic_delay_sec=5.0, mwd_interval_sec=2.0
+    )
     sim_a = WellSimulator(cfg)
     sim_b = WellSimulator(cfg)
     sim_a.load_preset("normal")
@@ -51,7 +52,7 @@ def test_acoustic_delay_no_mwd_before_delay() -> None:
     dt = 0.01
     t_end = delay + interval + 1.0
     n_steps = int(round(t_end / dt))
-    for i in range(n_steps):
+    for _i in range(n_steps):
         sim.step(dt, u_top_rpm=70.0, wob_kn=50.0)
         t = sim.time_s
         packets = sim.get_available_mwd_telemetry(t)

@@ -117,9 +117,7 @@ class UnscentedKalmanFilter:
 
         z0 = np.asarray(h_fn(sigma[0]), dtype=np.float64)
         if z0.shape != (m,):
-            msg = (
-                f"h_fn output must have shape ({m},), got {z0.shape}"
-            )
+            msg = f"h_fn output must have shape ({m},), got {z0.shape}"
             raise ValueError(msg)
 
         z_sigma = np.empty((n_sigma, m), dtype=np.float64)

@@ -5,7 +5,6 @@ from __future__ import annotations
 import numpy as np
 import pytest
 from numpy.typing import NDArray
-
 from src.engine.physics.drillstring_fem import (
     BitFrictionCoefficients,
     DrillstringParameters,
@@ -271,26 +270,61 @@ def test_bit_friction_coeffs_all_rejects() -> None:
 
 
 def test_build_uniform_all_rejects() -> None:
-    kwargs = {
-        "n_nodes": 3,
-        "density_kg_m3": 7850.0,
-        "shear_modulus_pa": 8.0e10,
-        "polar_moment_of_inertia_m4": 1e-5,
-        "total_length_m": 100.0,
-        "nodal_damping_coeff": 0.0,
-        "top_drive_damping": 1.0,
-        "bit_radius_m": 0.1,
-    }
     with pytest.raises(ValueError, match="n_nodes"):
-        build_uniform_drillstring(**{**kwargs, "n_nodes": 1})
+        build_uniform_drillstring(
+            n_nodes=1,
+            density_kg_m3=7850.0,
+            shear_modulus_pa=8.0e10,
+            polar_moment_of_inertia_m4=1e-5,
+            total_length_m=100.0,
+            nodal_damping_coeff=0.0,
+            top_drive_damping=1.0,
+            bit_radius_m=0.1,
+        )
     with pytest.raises(ValueError, match="shear_modulus"):
-        build_uniform_drillstring(**{**kwargs, "shear_modulus_pa": 0.0})
+        build_uniform_drillstring(
+            n_nodes=3,
+            density_kg_m3=7850.0,
+            shear_modulus_pa=0.0,
+            polar_moment_of_inertia_m4=1e-5,
+            total_length_m=100.0,
+            nodal_damping_coeff=0.0,
+            top_drive_damping=1.0,
+            bit_radius_m=0.1,
+        )
     with pytest.raises(ValueError, match="polar_moment"):
-        build_uniform_drillstring(**{**kwargs, "polar_moment_of_inertia_m4": -1.0})
+        build_uniform_drillstring(
+            n_nodes=3,
+            density_kg_m3=7850.0,
+            shear_modulus_pa=8.0e10,
+            polar_moment_of_inertia_m4=-1.0,
+            total_length_m=100.0,
+            nodal_damping_coeff=0.0,
+            top_drive_damping=1.0,
+            bit_radius_m=0.1,
+        )
     with pytest.raises(ValueError, match="total_length"):
-        build_uniform_drillstring(**{**kwargs, "total_length_m": 0.0})
+        build_uniform_drillstring(
+            n_nodes=3,
+            density_kg_m3=7850.0,
+            shear_modulus_pa=8.0e10,
+            polar_moment_of_inertia_m4=1e-5,
+            total_length_m=0.0,
+            nodal_damping_coeff=0.0,
+            top_drive_damping=1.0,
+            bit_radius_m=0.1,
+        )
     with pytest.raises(ValueError, match="nodal_damping"):
-        build_uniform_drillstring(**{**kwargs, "nodal_damping_coeff": -0.1})
+        build_uniform_drillstring(
+            n_nodes=3,
+            density_kg_m3=7850.0,
+            shear_modulus_pa=8.0e10,
+            polar_moment_of_inertia_m4=1e-5,
+            total_length_m=100.0,
+            nodal_damping_coeff=-0.1,
+            top_drive_damping=1.0,
+            bit_radius_m=0.1,
+        )
 
 
 def test_bit_stribeck_rejects_bad_radius() -> None:

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import numpy as np
 from numpy.typing import NDArray
-
 from src.engine.physics.integrators import rk4_step
 
 

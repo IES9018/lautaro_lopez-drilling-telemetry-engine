@@ -17,7 +17,11 @@ drilling-telemetry-engine/
 ├── INSTRUCTIONS.md                # Este runbook
 ├── SPEC.md                        # SSOT técnico
 ├── .github/
-│   └── PULL_REQUEST_TEMPLATE.md
+│   ├── PULL_REQUEST_TEMPLATE.md
+│   └── workflows/                 # ci.yml + security.yml
+├── pyproject.toml                 # Tooling Python (mypy/ruff/pytest/bandit)
+├── Dockerfile                     # Runtime FastAPI (cuando exista create_app)
+├── docker-compose.yml             # api + redis
 ├── docs/
 │   ├── adr/                       # Architecture Decision Records
 │   ├── arquitectura/              # Diagramas
@@ -133,27 +137,41 @@ Completar **antes** de solicitar revisión:
 
 ---
 
-## 5. Comandos de verificación local (esperados)
+## 5. Tooling y CI local
 
-> El scaffolding de tooling (`pyproject.toml`, `package.json`, CI) se configura en un paso posterior del Sprint 1. Estos comandos son el contrato operativo esperado.
+Instalación editable (Python 3.11–3.12):
 
 ```bash
-# Python — calidad
+python3 -m venv .venv
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
+pip install -e ".[dev]"
+```
+
+### Calidad / tests (equivalente a `.github/workflows/ci.yml`)
+
+```bash
 ruff check src tests
-mypy --strict src
-
-# Python — tests y cobertura
-pytest --cov=src --cov-fail-under=85 --cov-report=term-missing
-
-# Property / estabilidad (mismo runner; marcadores opcionales)
+ruff format --check src tests
+mypy
+pytest                      # unit + integration + property; gate cov >= 85%
 pytest tests/property -q
-pytest tests/unit -q -k "rk4 or ukf or ssi"
+bandit -r src -ll           # equivalente a security.yml
+```
 
-# Seguridad (SAST)
-bandit -r src -ll
+Frontend (solo si existe `src/ui/package.json`; el job CI es condicional):
 
-# TypeScript (cuando exista src/ui scaffolding)
-# cd src/ui && npm run lint && npx tsc --noEmit && npm test
+```bash
+cd src/ui && npm ci && npm run typecheck && npm test && npm run build
+```
+
+### Docker Compose
+
+```bash
+# Redis ya usable (pipeline consumirá REDIS_URL más adelante)
+docker compose up redis
+
+# API: requiere src.pipeline.api.app:create_app (dominio pipeline)
+docker compose up --build api
 ```
 
 Semillas y determinismo:

@@ -35,10 +35,7 @@ class StribeckParameters:
             msg = f"t_coulomb must be >= 0, got {self.t_coulomb}"
             raise ValueError(msg)
         if self.t_static < self.t_coulomb:
-            msg = (
-                f"t_static must be >= t_coulomb "
-                f"({self.t_static} < {self.t_coulomb})"
-            )
+            msg = f"t_static must be >= t_coulomb ({self.t_static} < {self.t_coulomb})"
             raise ValueError(msg)
         if self.gamma <= 0.0:
             msg = f"gamma must be > 0, got {self.gamma}"

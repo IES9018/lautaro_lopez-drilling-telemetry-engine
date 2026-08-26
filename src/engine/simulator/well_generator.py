@@ -232,8 +232,12 @@ class WellSimulator:
     _state: NDArray[np.float64] = field(init=False, repr=False)
     _state_derivative: StateDerivativeFn = field(init=False, repr=False)
     _rng: np.random.Generator = field(init=False, repr=False)
-    _last_step: SimulationStepResult | None = field(default=None, init=False, repr=False)
-    _pending_mwd: list[_PendingMwd] = field(default_factory=list, init=False, repr=False)
+    _last_step: SimulationStepResult | None = field(
+        default=None, init=False, repr=False
+    )
+    _pending_mwd: list[_PendingMwd] = field(
+        default_factory=list, init=False, repr=False
+    )
     _next_mwd_origin_s: float = field(init=False, repr=False)
     _start_utc: datetime = field(init=False, repr=False)
     _friction_coeffs: BitFrictionCoefficients = field(init=False, repr=False)
@@ -413,12 +417,16 @@ class WellSimulator:
             raise RuntimeError(msg)
         noise = self.config.noise_config
         step = self._last_step
-        rpm = step.rpm_surface_true + float(self._rng.normal(0.0, noise.rpm_surface_std))
+        rpm = step.rpm_surface_true + float(
+            self._rng.normal(0.0, noise.rpm_surface_std)
+        )
         torque = step.torque_surface_knm_true + float(
             self._rng.normal(0.0, noise.torque_surface_knm_std)
         )
-        hook = self.config.hookload_base_kn - step.wob_kn + float(
-            self._rng.normal(0.0, noise.hookload_kn_std)
+        hook = (
+            self.config.hookload_base_kn
+            - step.wob_kn
+            + float(self._rng.normal(0.0, noise.hookload_kn_std))
         )
         spp = self.config.standpipe_base_kpa + float(
             self._rng.normal(0.0, noise.standpipe_pressure_kpa_std)
@@ -464,7 +472,9 @@ class WellSimulator:
                 torque = pending.torque_downhole_knm_true + float(
                     self._rng.normal(0.0, noise.torque_downhole_knm_std)
                 )
-                wob = pending.wob_kn_true + float(self._rng.normal(0.0, noise.wob_kn_std))
+                wob = pending.wob_kn_true + float(
+                    self._rng.normal(0.0, noise.wob_kn_std)
+                )
                 ready.append(
                     MwdTelemetrySample(
                         timestamp=self._iso_utc(pending.origin_time_s),

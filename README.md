@@ -30,12 +30,15 @@ Motor de estimación de estado en tiempo real y gemelo digital para monitoreo de
 | UKF (sigma points Van der Merwe + predict/update) | Listo |
 | Simulador de pozo (`well_generator`) + retardo MWD | Listo |
 | Tests unitarios + integración; cobertura 100% en módulos core | Listo |
-| `MODELO_MATEMATICO.md` + auditoría IA (A-001…A-004) | Listo |
-| Tooling (`pyproject.toml`, CI) | Pendiente |
+| `MODELO_MATEMATICO.md` + auditoría IA (A-001…A-004, A-008) | Listo |
+| Tooling (`pyproject.toml`, Ruff, Mypy, pytest-cov ≥85%) | Listo |
+| GitHub Actions (`ci.yml`, `security.yml`) | Listo |
+| Docker Compose (`api` + `redis`) | Listo (api arranca cuando exista pipeline `create_app`) |
+| Property tests Hypothesis (energía + PSD UKF) | Listo |
 | Pipeline Redis + WebSocket | Pendiente |
 | UI Three.js + LLM Advisor | Pendiente (P3) |
 
-**Rama de trabajo reciente:** `feature/simulator-ground-truth` → PR a `develop`.
+**Rama de trabajo reciente:** `feature/infra-tooling-and-property-tests` → PR a `develop`.
 
 ## Arquitectura (4 capas)
 
@@ -69,7 +72,8 @@ Detalle: [`SPEC.md`](SPEC.md) · matemáticas: [`docs/arquitectura/MODELO_MATEMA
 | API / WS | FastAPI (pendiente) |
 | Buffer | Redis Streams (pendiente) |
 | UI | Next.js, Three.js, TypeScript strict (pendiente) |
-| Calidad | mypy --strict, pytest, coverage; Ruff/Bandit pendientes en CI |
+| Calidad | mypy strict, pytest-cov ≥85%, Hypothesis, Ruff, Bandit (CI) |
+| Contenedores | Docker multi-stage + Compose (`api`, `redis`) |
 
 ## Estructura
 
@@ -106,30 +110,34 @@ feature/<tema>  →  PR → develop  →  PR → main
 
 ## Desarrollo local
 
-Con el venv del repo (cuando exista `.venv`):
-
 ```bash
 python3 -m venv .venv
-.venv/bin/pip install numpy pytest coverage mypy
+source .venv/bin/activate
+pip install -e ".[dev]"
 
-.venv/bin/python -m pytest tests/unit -q
-.venv/bin/mypy --strict src/engine
-# Cobertura (evitar pytest-cov en Python 3.14; usar coverage run):
-.venv/bin/coverage run --source=src -m pytest tests/unit -q
-.venv/bin/coverage report -m --include='src/engine/*'
+# Misma suite que CI (lint + tipado + tests con gate 85%)
+ruff check src tests && ruff format --check src tests
+mypy
+pytest
+bandit -r src -ll
+
+# Docker
+docker compose up redis                 # buffer Redis Alpine
+# docker compose up --build api         # requiere create_app del pipeline
 ```
 
-El scaffolding formal (`pyproject.toml`, Ruff, Bandit, CI) se agrega en un paso posterior del Sprint 1. Checklist completo: [`INSTRUCTIONS.md`](INSTRUCTIONS.md).
+Python soportado: **3.11 / 3.12** en CI (`requires-python = ">=3.11,<3.15"`). Checklist: [`INSTRUCTIONS.md`](INSTRUCTIONS.md).
 
 ## Requerimientos funcionales (resumen)
 
 | ID | Descripción | Sprint 1 |
 |----|-------------|----------|
 | RF-03…06 | Stribeck, RK4, UKF, SSI | Hecho (núcleo) |
-| RF-11/12 | Tests, tipado, auditoría IA | En curso |
+| RF-11/12 | Tests, tipado, tooling/CI, auditoría IA | Hecho (tooling + property) |
 | RF-01/02/10 | Ingest + Redis Streams | Pendiente |
 | RF-08/09 | WebSocket 60 FPS + UI 3D | Pendiente (P3) |
 | RF-07 | Advisor LLM si `SSI > 1.0` | Pendiente (P3) |
+
 
 Lista completa y Non-Goals: [`SPEC.md` §1](SPEC.md).
 
