@@ -8,12 +8,25 @@ Motor de estimación de estado en tiempo real y gemelo digital para monitoreo de
 
 | Campo | Valor |
 |-------|-------|
-| Asignatura | Práctica Profesionalizante III (PP3) |
+| Asignatura PP3 | Práctica Profesionalizante III (PP3) |
+| Asignatura ADI | Arquitectura y Diseño de Interfaces (3° año) |
 | Institución | IES 9-018 |
 | Ciclo | 2026 |
 | Profesor | Paulo Alvarez |
 | Alumno / repo | `lautaro_lopez` · [`IES9018/lautaro_lopez-drilling-telemetry-engine`](https://github.com/IES9018/lautaro_lopez-drilling-telemetry-engine) |
-| Sprint 1 | 24 ago – 18 sep 2026 |
+| Sprint 1 (PP3) | 24 ago – 18 sep 2026 |
+| Entorno de desarrollo | **Cursor** |
+| Arnés IA | [`.cursor/rules/*.mdc`](.cursor/rules/) (índice en [`.cursor/rules/README.md`](.cursor/rules/README.md)) |
+| Consignas ADI | [`IES9018/proyecto-adi-2026`](https://github.com/IES9018/proyecto-adi-2026) |
+
+## Entrega ADI — TP1 (SDD y arneses)
+
+| Entregable TP1 | Ubicación en este repo |
+|----------------|------------------------|
+| Especificación declarativa | [`SPEC.md`](SPEC.md) — RF-01…13, Non-Goals, contratos |
+| ADR stack tecnológico | [`docs/adr/ADR-001-stack-tecnologico.md`](docs/adr/ADR-001-stack-tecnologico.md) |
+| Arnés de agente IA | [`.cursor/rules/`](.cursor/rules/) + [`INSTRUCTIONS.md`](INSTRUCTIONS.md) |
+| Evidencia de entrega | PR `feature/tp1-sdd` → `main` (checklist en plantilla de PR) |
 
 ## Estado del proyecto
 

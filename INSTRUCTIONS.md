@@ -5,7 +5,9 @@
 **Profesor:** Paulo Alvarez  
 **Sprint 1:** 24 ago – 18 sep 2026  
 
-Este documento es el runbook diario. Las restricciones duras viven en [`.cursor/rules/`](.cursor/rules/) (rules de Cursor). La especificación técnica SSOT vive en [`SPEC.md`](SPEC.md).
+Este documento es el runbook diario. Las restricciones duras viven en [`.cursor/rules/`](.cursor/rules/) (arnés nativo de **Cursor**; equivalente ADI a `.opencoderules`). La especificación técnica SSOT vive en [`SPEC.md`](SPEC.md).
+
+**ADI TP1:** entregables en raíz (`SPEC.md`, `docs/adr/ADR-001`, arnés) — ver tabla en [`README.md`](README.md#entrega-adi--tp1-sdd-y-arneses).
 
 ---
 
