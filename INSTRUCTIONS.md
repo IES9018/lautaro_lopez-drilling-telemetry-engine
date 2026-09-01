@@ -9,6 +9,8 @@ Este documento es el runbook diario. Las restricciones duras viven en [`.cursor/
 
 **ADI TP1:** entregables en raíz (`SPEC.md`, `docs/adr/ADR-001`, arnés) — ver tabla en [`README.md`](README.md#entrega-adi--tp1-sdd-y-arneses).
 
+**ADI TP2:** C4 + ADR-002/003 + SPEC v2 — ver [`README.md`](README.md#entrega-adi--tp2-arquitectura-visible).
+
 ---
 
 ## 1. Árbol de carpetas
