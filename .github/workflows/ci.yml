@@ -1,0 +1,94 @@
+# CI — ADI TP6 · Protege main en cada PR
+# Actions de terceros: checkout/setup-python/setup-node — runners oficiales GitHub (justificado: bootstrap estándar).
+name: CI
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  openapi-lint:
+    name: OpenAPI lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npx --yes @redocly/cli lint docs/arquitectura/api-contracts.yaml
+
+  python-tests:
+    name: Python tests + mypy
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - run: pytest tests/ -q --tb=short
+      - run: mypy --strict src/pipeline src/engine src/advisor
+
+  ui-build:
+    name: UI typecheck + build + tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/ui
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: src/ui/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run build
+      - run: npm test
+
+  js-budget:
+    name: RNF-03 JS shell budget
+    needs: ui-build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: src/ui/package-lock.json
+      - working-directory: src/ui
+        run: npm ci && npm run build
+      - run: bash scripts/check-js-budget.sh
+
+  lighthouse-mobile:
+    name: Lighthouse mobile (RNF-01/02)
+    needs: ui-build
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: src/ui/package-lock.json
+      - working-directory: src/ui
+        run: npm ci && npm run build
+      - name: Start Next.js
+        working-directory: src/ui
+        run: |
+          npm run start &
+          npx --yes wait-on http://localhost:3000 --timeout 120000
+      - run: npx --yes @lhci/cli autorun --config=docs/arquitectura/lighthouserc.mobile.json

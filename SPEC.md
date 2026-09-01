@@ -4,8 +4,8 @@
 **Repositorio:** `IES9018/lautaro_lopez-drilling-telemetry-engine`  
 **Asignatura:** Práctica Profesionalizante III (PP3) · IES 9-018 · Ciclo 2026  
 **Sprint 1:** 24 ago – 18 sep 2026  
-**Versión del documento:** 5.0.0  
-**Estado:** Baseline Sprint 1 + restricciones arquitectónicas (ADI TP2) + criterios UI/HCI (ADI TP3) + contrato API-first (ADI TP4) + RNF mobile (ADI TP5)
+**Versión del documento:** 6.0.0  
+**Estado:** **Congelado para defensa ADI** — baseline PP3 Sprint 1 + entregables TP1–TP6
 
 Este documento es la **Single Source of Truth** técnica. Cualquier cambio de modelo, contrato o arquitectura debe actualizarse aquí antes o en el mismo PR que el código.
 
@@ -208,6 +208,22 @@ Decisiones **no negociables** derivadas de ADRs aprobados. Cualquier código o d
 | **ARCH-03** | Buffer streaming Sprint 1: **`TimeSyncBuffer` in-memory**; sin SQL ni data lake (NG-09). Redis Streams = roadmap RF-10, no requisito del lazo actual. | ADR-003 · RF-10 |
 | **ARCH-04** | Contratos JSON Schema + Pydantic en el borde; UI consume solo `broadcast.state.v1` (no recalcula SSI). | ADR-001 · RF-12 |
 | **ARCH-05** | **Prohibido** introducir frameworks, bases de datos o servicios externos no declarados en un **ADR aprobado**; ante duda, proponer ADR nuevo. | `.cursor/rules/governance.mdc` |
+| **ARCH-06** | Estrategia web **híbrida** Next.js (SSR shell + CSR WebGL/WS); contrato REST/WS en `api-contracts.yaml` antes del código. | ADR-005 · TP4 |
+| **ARCH-07** | Mobile: **responsive web**; sin app nativa Sprint 1; offline live = NG-MOBILE-01. | ADR-006 · TP5 |
+| **ARCH-08** | **CI verde obligatorio** para merge a `main` (OpenAPI lint, pytest, mypy, UI build). | TP6 · `.github/workflows/ci.yml` |
+
+#### Trazabilidad ADR ↔ restricciones (congelado defensa — ADI TP6)
+
+| ADR | Decisión | Restricciones SPEC / artefactos |
+|-----|----------|--------------------------------|
+| [ADR-001](docs/adr/ADR-001-stack-tecnologico.md) | Python/NumPy, FastAPI, Next, RK4/UKF propios | ARCH-01, ARCH-04, RF-03…09 |
+| [ADR-002](docs/adr/ADR-002-estilo-arquitectonico.md) | Monolito modular | ARCH-02, dominios `.cursor/rules/` |
+| [ADR-003](docs/adr/ADR-003-persistencia.md) | Buffer in-memory; Redis roadmap | ARCH-03, RF-10, NG-09 |
+| [ADR-004](docs/adr/ADR-004-stack-ui.md) | Next 15 + R3F + TS strict | RF-09, ui-digital-twin.mdc |
+| [ADR-005](docs/adr/ADR-005-estrategia-web.md) | SSR shell + CSR 3D/WS | ARCH-06, api-contracts.yaml |
+| [ADR-006](docs/adr/ADR-006-estrategia-mobile.md) | Responsive; PWA diferida | ARCH-07, RNF-01…05, NG-MOBILE-01 |
+
+Postmortem cuatrimestre: [`docs/postmortem-cuatrimestre.md`](docs/postmortem-cuatrimestre.md). Arnés vFinal: [`.opencoderules`](.opencoderules).
 
 Diagramas C4 oficiales ADI TP2: [`docs/arquitectura/C4-contexto.md`](docs/arquitectura/C4-contexto.md), [`docs/arquitectura/C4-contenedores.md`](docs/arquitectura/C4-contenedores.md).
 
@@ -807,6 +823,7 @@ Para entregables posteriores del sprint (fuera de este documento como “hechos�
 | 3.0.0 | 2026-08-31 | **ADI TP3:** §1.2.1 criterios Gherkin UI (RF-07/08/09, RF-UI-01, RF-UI-ACC), ADR-004 stack UI, personas/journeys/wireframes y auditoría Nielsen en `docs/diseno/`. |
 | 4.0.0 | 2026-08-31 | **ADI TP4:** `docs/arquitectura/api-contracts.yaml` (OpenAPI 5 endpoints), ADR-005 estrategia web, `docs/seguridad/threat-model-lite.md`, arnés v3 seguridad; §1.4 referencia schemas OpenAPI. |
 | 5.0.0 | 2026-08-31 | **ADI TP5:** §1.6 RNF-01…05 medibles, ADR-006 estrategia mobile, presupuestos rendimiento, offline Non-Goal NG-MOBILE-01, wireframes móvil. |
+| 6.0.0 | 2026-08-31 | **ADI TP6:** CI GitHub Actions, CHANGELOG v0.1.0, `.opencoderules` vFinal, postmortem, ARCH-06…08, trazabilidad ADR ↔ restricciones; **congelado defensa**. |
 
 ---
 
@@ -824,4 +841,4 @@ Para entregables posteriores del sprint (fuera de este documento como “hechos�
 
 ---
 
-*Fin de SPEC.md v5.0.0 — RNF mobile medibles + baseline Sprint 1*
+*Fin de SPEC.md v6.0.0 — Congelado para defensa ADI · Release v0.1.0*

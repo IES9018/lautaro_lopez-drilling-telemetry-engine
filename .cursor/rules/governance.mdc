@@ -46,6 +46,11 @@ Commits: `feat:`, `fix:`, `docs:`, `ci:`, `chore:`, `test:` únicamente.
 
 Threat model: [`docs/seguridad/threat-model-lite.md`](../../docs/seguridad/threat-model-lite.md).
 
+## Proceso CI (arnés vFinal — ADI TP6)
+
+- **OBLIGATORIO:** CI verde antes de merge a `main` (`.github/workflows/ci.yml`).
+- Arnés consolidado: [`.opencoderules`](../../.opencoderules).
+
 ## Auditoría IA
 
 Fórmulas, constantes o convergencia generadas por IA → registrar en `docs/auditoria/auditoria-sprint1.md`.

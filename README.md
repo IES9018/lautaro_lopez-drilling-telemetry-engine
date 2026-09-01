@@ -1,5 +1,7 @@
 # Drilling Telemetry Engine
 
+[![CI](https://github.com/IES9018/lautaro_lopez-drilling-telemetry-engine/actions/workflows/ci.yml/badge.svg)](https://github.com/IES9018/lautaro_lopez-drilling-telemetry-engine/actions/workflows/ci.yml)
+
 Motor de estimación de estado en tiempo real y gemelo digital para monitoreo de perforación petrolera profunda (Upstream Oil & Gas). Detecta y diagnostica **Stick-Slip** (inestabilidad torsional de la broca) fusionando telemetría de superficie (100 Hz) con MWD de fondo (~0.05 Hz, retardo acústico 15–45 s).
 
 > No es un CRUD web: es un sistema soft real-time con núcleo numérico determinista (RK4 + UKF propios), streaming y visualización 3D.
@@ -16,7 +18,7 @@ Motor de estimación de estado en tiempo real y gemelo digital para monitoreo de
 | Alumno / repo | `lautaro_lopez` · [`IES9018/lautaro_lopez-drilling-telemetry-engine`](https://github.com/IES9018/lautaro_lopez-drilling-telemetry-engine) |
 | Sprint 1 (PP3) | 24 ago – 18 sep 2026 |
 | Entorno de desarrollo | **Cursor** |
-| Arnés IA | [`.cursor/rules/*.mdc`](.cursor/rules/) (índice en [`.cursor/rules/README.md`](.cursor/rules/README.md)) |
+| Arnés IA | [`.opencoderules`](.opencoderules) · [`.cursor/rules/*.mdc`](.cursor/rules/) |
 | Consignas ADI | [`IES9018/proyecto-adi-2026`](https://github.com/IES9018/proyecto-adi-2026) |
 
 ## Entrega ADI — TP1 (SDD y arneses)
@@ -76,6 +78,18 @@ Motor de estimación de estado en tiempo real y gemelo digital para monitoreo de
 | Script presupuesto JS (CI TP6) | [`scripts/check-js-budget.sh`](scripts/check-js-budget.sh) |
 | Evidencia de entrega | PR `feature/tp5-mobile` → `main` |
 
+## Entrega ADI — TP6 (CI, release y postmortem)
+
+| Entregable TP6 | Ubicación en este repo |
+|----------------|------------------------|
+| Pipeline CI | [`.github/workflows/ci.yml`](.github/workflows/ci.yml) |
+| SAST Bandit | [`.github/workflows/security.yml`](.github/workflows/security.yml) |
+| CHANGELOG + release | [`CHANGELOG.md`](CHANGELOG.md) · tag `v0.1.0` |
+| Arnés vFinal | [`.opencoderules`](.opencoderules) + [`.cursor/rules/`](.cursor/rules/) |
+| Postmortem cuatrimestre | [`docs/postmortem-cuatrimestre.md`](docs/postmortem-cuatrimestre.md) |
+| SPEC v6 (congelado defensa) | [`SPEC.md`](SPEC.md) |
+| Evidencia de entrega | PR `feature/tp6-ci` → `main` |
+
 ## Estado del proyecto
 
 **Fase actual:** Physics + UKF + simulador + pipeline + **gemelo digital 3D** (Sprint 1 en curso).
@@ -97,7 +111,7 @@ Motor de estimación de estado en tiempo real y gemelo digital para monitoreo de
 | UI Next.js / R3F digital twin + gauges + AdvisorFeed | Listo |
 | Tests unitarios + integración; cobertura ≥85% pipeline/advisor | Listo |
 | `MODELO_MATEMATICO.md` + `DIAGRAMAS_C4.md` + auditoría (A-001…A-007) | Listo |
-| Tooling (`pyproject.toml`, CI) | Pendiente |
+| Tooling (`pyproject.toml`, CI) | Listo (`.github/workflows/`) |
 | Redis Streams (RF-10) | Diferido (buffer in-memory Sprint 1) |
 
 **Rama de trabajo reciente:** `feature/ui-3d-digital-twin` → PR a `develop`.
