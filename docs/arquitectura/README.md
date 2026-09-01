@@ -42,3 +42,6 @@ docker run --rm -v "$PWD/docs/arquitectura:/work" redocly/cli lint api-contracts
 | [`C4-contenedores.md`](C4-contenedores.md) | Vista de contenedores |
 | [`DIAGRAMAS_C4.md`](DIAGRAMAS_C4.md) | Índice C4 |
 | [`MODELO_MATEMATICO.md`](MODELO_MATEMATICO.md) | FEM, SSI, UKF |
+| [`presupuestos-rendimiento.md`](presupuestos-rendimiento.md) | RNF LCP/INP/JS (ADI TP5) |
+| [`lighthouserc.mobile.json`](lighthouserc.mobile.json) | Config Lighthouse CI móvil |
+| [`offline-sync.md`](offline-sync.md) | Non-Goal offline (ADI TP5) |
