@@ -37,4 +37,5 @@ Referencia institucional: [entornos-de-desarrollo.md](https://github.com/IES9018
 - Cajas negras para RK4/UKF; `eval`/pickle sobre telemetría.
 - Secretos hardcodeados; cambiar contratos sin actualizar `SPEC.md` / `docs/contratos/`.
 - Dependencias o servicios externos sin ADR aprobado (arnés v2 — ADI TP2).
+- Endpoints REST/WS sin entrada previa en `api-contracts.yaml` (arnés v3 — ADI TP4).
 - Push directo a `main` / `develop`.
