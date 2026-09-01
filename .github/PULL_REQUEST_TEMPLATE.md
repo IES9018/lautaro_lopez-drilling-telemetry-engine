@@ -39,10 +39,11 @@
 ## Checklist de gestión (Git Flow)
 
 - [ ] Rama `feature/<tema>` (o `fix/<tema>`) correcta
-- [ ] PR apunta a la base correcta (`develop` para features)
+- [ ] PR apunta a la base correcta (`develop` para features / `main` para entregas ADI)
 - [ ] No hay push directo a `main` ni `develop`
 - [ ] Un dominio por PR (o cross-domain justificado abajo)
 - [ ] Commits convencionales (`feat:`, `fix:`, `docs:`, `ci:`, `chore:`, `test:`)
+- [ ] **CI verde en el PR** — merge a `main` prohibido con pipeline rojo (`.github/workflows/ci.yml`)
 
 ### Justificación cross-domain (si aplica)
 

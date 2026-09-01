@@ -1,0 +1,63 @@
+# Arnés de agente IA — vFinal (ADI TP6)
+# Equivalente institucional a .opencoderules · Implementación Cursor: .cursor/rules/*.mdc
+# Proyecto: lautaro_lopez-drilling-telemetry-engine · IES 9-018 · Ciclo 2026
+
+## 1. Alcance permitido
+
+- SSOT técnico: SPEC.md. Ante conflicto IA vs SPEC, prevalece SPEC.md.
+- Runbook: INSTRUCTIONS.md. Stack baseline: docs/adr/ADR-001-stack-tecnologico.md.
+- Escritura restringida por dominio:
+  - Physics → src/engine/**
+  - Pipeline → src/pipeline/**
+  - Advisor → src/advisor/**
+  - UI → src/ui/**
+  - QA → tests/** (solo tests; lee todo)
+  - Docs → docs/**, .github/**, .cursor/rules/**, .opencoderules
+- Un PR = un dominio salvo cross-domain justificado y aprobado.
+- Physics no implementa HTTP/UI. Pipeline no altera RK4/UKF/fórmulas. QA no “arregla” producción.
+
+## 2. Estándares obligatorios
+
+- Python 3.12+: type hints completos, mypy --strict en src/engine, src/pipeline, src/advisor.
+- UI: TypeScript strict; Next.js 15 + R3F según ADR-004.
+- RK4 y UKF: implementación propia determinista; NumPy como primitiva, no simulador/filtro caja negra.
+- Contratos: JSON Schema + Pydantic extra=forbid en el borde; additionalProperties: false.
+- API pública: OpenAPI docs/arquitectura/api-contracts.yaml ANTES del código (TP4).
+- Tests: pytest; cobertura pipeline/advisor ≥ 85% objetivo; property tests en física/UKF cuando aplique.
+- Commits convencionales: feat:, fix:, docs:, ci:, chore:, test: únicamente.
+- Git Flow: feature/* → PR → develop → PR → main. Sin push directo a main/develop.
+- CI en verde obligatorio para merge a main (workflow .github/workflows/ci.yml).
+- Fórmulas/constantes generadas por IA → docs/auditoria/auditoria-sprint1.md.
+
+## 3. Prohibiciones
+
+- Código de relleno no alineado a SPEC.md.
+- Cajas negras RK4/UKF; eval/pickle sobre telemetría.
+- Secretos, tokens o credenciales hardcodeados (usar variables de entorno).
+- Cambiar contratos sin actualizar SPEC.md / docs/contratos/ / api-contracts.yaml.
+- Frameworks, bases de datos o servicios externos sin ADR aprobado (docs/adr/).
+- Endpoints REST/WS nuevos sin entrada previa en api-contracts.yaml.
+- UI que recalcula SSI o alert_level (solo muestra broadcast del motor).
+- Push directo a main o develop.
+- Merge de PR con CI rojo.
+
+## 4. Proceso y calidad (TP6)
+
+- Antes de PR: pytest local, mypy, OpenAPI lint (npx @redocly/cli lint docs/arquitectura/api-contracts.yaml).
+- UI: npm run typecheck && npm test && npm run build en src/ui/.
+- Presupuestos RNF: ver docs/arquitectura/presupuestos-rendimiento.md (LCP, INP, JS shell).
+- Seguridad: Bandit sin hallazgos críticos; ver docs/seguridad/threat-model-lite.md.
+- Release: CHANGELOG.md + tag SemVer; SPEC congelado para defensa.
+
+## 5. ADRs vigentes (restricciones arquitectónicas)
+
+| ADR | Tema |
+|-----|------|
+| ADR-001 | Stack tecnológico Python/FastAPI/Next |
+| ADR-002 | Monolito modular |
+| ADR-003 | Persistencia in-memory / Redis roadmap |
+| ADR-004 | Stack UI R3F |
+| ADR-005 | Estrategia web híbrida SSR+CSR |
+| ADR-006 | Estrategia mobile responsive |
+
+Detalle: SPEC.md §1.5 y docs/adr/.

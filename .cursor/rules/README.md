@@ -2,9 +2,11 @@
 
 Equivalente al `.opencoderules` de OpenCode para este proyecto. La cátedra ADI acepta el arnés nativo de Cursor: **`.cursor/rules/*.mdc`** (formato moderno; `.cursorrules` en la raíz es legado).
 
-Referencia institucional: [entornos-de-desarrollo.md](https://github.com/IES9018/proyecto-adi-2026/blob/main/entornos-de-desarrollo.md) · Runbook: [`INSTRUCTIONS.md`](../../INSTRUCTIONS.md) · SSOT: [`SPEC.md`](../../SPEC.md)
+**Arnés consolidado vFinal (ADI TP6):** [`.opencoderules`](../../.opencoderules) — alcance, estándares, prohibiciones, proceso y ADRs en un solo archivo.
 
-## Archivos del arnés
+Referencia institucional: [entornos-de-desarrollo.md](https://github.com/IES9018/proyecto-adi-2026/blob/main/entornos-de-desarrollo.md) · Runbook: [`INSTRUCTIONS.md`](../../INSTRUCTIONS.md) · SSOT: [`SPEC.md`](../../SPEC.md) v6.0.0
+
+## Archivos del arnés (Cursor — por dominio)
 
 | Archivo | Rol |
 |---------|-----|
@@ -17,25 +19,22 @@ Referencia institucional: [entornos-de-desarrollo.md](https://github.com/IES9018
 | [`testing-qa.mdc`](testing-qa.mdc) | Cobertura ≥85%, Hypothesis, invariantes |
 | [`docs-audit.mdc`](docs-audit.mdc) | SPEC, ADRs, auditoría IA |
 
-## Contenido mínimo ADI (tres secciones)
+## Resumen vFinal (sin duplicar `.opencoderules`)
 
 ### Alcance permitido
 
-- Escritura restringida por dominio (`governance.mdc`): Physics → `src/engine/**`, Pipeline → `src/pipeline/**`, Advisor → `src/advisor/**`, UI → `src/ui/**`, QA → `tests/**`, Docs → `docs/**`, `.github/**`, `.cursor/rules/**`.
+- Escritura restringida por dominio (`governance.mdc`).
 - Un PR = un dominio (cross-domain solo con justificación).
 
 ### Estándares obligatorios
 
-- Python: type hints completos, `mypy --strict` (`python-strict.mdc`).
-- UI: TypeScript `strict` (`ui-digital-twin.mdc`).
-- Tests: cobertura ≥85%, Hypothesis en física/UKF (`testing-qa.mdc`).
-- Commits convencionales; Git Flow `feature/*` → `develop` → `main` (`governance.mdc`).
+- Python: `mypy --strict` · UI: TypeScript `strict` · Tests: pytest + CI verde.
+- OpenAPI lint en CI · API-first antes de código.
 
 ### Prohibiciones
 
-- Código de relleno no alineado a `SPEC.md`.
-- Cajas negras para RK4/UKF; `eval`/pickle sobre telemetría.
-- Secretos hardcodeados; cambiar contratos sin actualizar `SPEC.md` / `docs/contratos/`.
-- Dependencias o servicios externos sin ADR aprobado (arnés v2 — ADI TP2).
-- Endpoints REST/WS sin entrada previa en `api-contracts.yaml` (arnés v3 — ADI TP4).
-- Push directo a `main` / `develop`.
+- Ver sección 3 de [`.opencoderules`](../../.opencoderules) (secrets, cajas negras, deps sin ADR, CI rojo en merge).
+
+### Proceso
+
+- Git Flow · CHANGELOG · tag SemVer · postmortem en `docs/postmortem-cuatrimestre.md`.

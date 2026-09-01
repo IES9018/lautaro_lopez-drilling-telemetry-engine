@@ -17,6 +17,8 @@ Este documento es el runbook diario. Las restricciones duras viven en [`.cursor/
 
 **ADI TP5:** ADR-006, presupuestos RNF, offline Non-Goal, wireframes móvil + SPEC v5 — ver [`README.md`](README.md#entrega-adi--tp5-estrategia-mobile).
 
+**ADI TP6:** CI, CHANGELOG v0.1.0, arnés vFinal, postmortem + SPEC v6 — ver [`README.md`](README.md#entrega-adi--tp6-ci-release-y-postmortem).
+
 ---
 
 ## 1. Árbol de carpetas
