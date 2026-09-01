@@ -28,6 +28,18 @@ Motor de estimación de estado en tiempo real y gemelo digital para monitoreo de
 | Arnés de agente IA | [`.cursor/rules/`](.cursor/rules/) + [`INSTRUCTIONS.md`](INSTRUCTIONS.md) |
 | Evidencia de entrega | PR `feature/tp1-sdd` → `main` (checklist en plantilla de PR) |
 
+## Entrega ADI — TP2 (Arquitectura visible)
+
+| Entregable TP2 | Ubicación en este repo |
+|----------------|------------------------|
+| C4 contexto | [`docs/arquitectura/C4-contexto.md`](docs/arquitectura/C4-contexto.md) |
+| C4 contenedores | [`docs/arquitectura/C4-contenedores.md`](docs/arquitectura/C4-contenedores.md) |
+| ADR estilo arquitectónico | [`docs/adr/ADR-002-estilo-arquitectonico.md`](docs/adr/ADR-002-estilo-arquitectonico.md) |
+| ADR persistencia / buffer | [`docs/adr/ADR-003-persistencia.md`](docs/adr/ADR-003-persistencia.md) |
+| SPEC v2 (restricciones + changelog) | [`SPEC.md`](SPEC.md) §1.5 |
+| Arnés v2 (regla anti-deps sin ADR) | [`.cursor/rules/governance.mdc`](.cursor/rules/governance.mdc) |
+| Evidencia de entrega | PR `feature/tp2-arquitectura` → `main` |
+
 ## Estado del proyecto
 
 **Fase actual:** Physics + UKF + simulador + pipeline + **gemelo digital 3D** (Sprint 1 en curso).

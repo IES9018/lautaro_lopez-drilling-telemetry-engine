@@ -36,6 +36,7 @@ Commits: `feat:`, `fix:`, `docs:`, `ci:`, `chore:`, `test:` únicamente.
 - Cajas negras para RK4/UKF (ver rule de physics).
 - Secretos hardcodeados; `eval`/pickle sobre telemetría.
 - Cambiar contratos sin actualizar `SPEC.md` / `docs/contratos/`.
+- Introducir frameworks, bases de datos o servicios externos **no declarados en un ADR aprobado** (`docs/adr/`). Ante duda, proponer ADR nuevo antes de codificar.
 
 ## Auditoría IA
 

@@ -4,8 +4,8 @@
 **Repositorio:** `IES9018/lautaro_lopez-drilling-telemetry-engine`  
 **Asignatura:** Práctica Profesionalizante III (PP3) · IES 9-018 · Ciclo 2026  
 **Sprint 1:** 24 ago – 18 sep 2026  
-**Versión del documento:** 1.1.0  
-**Estado:** Baseline Sprint 1 (especificación declarativa + detalle técnico)
+**Versión del documento:** 2.0.0  
+**Estado:** Baseline Sprint 1 + restricciones arquitectónicas (ADI TP2)
 
 Este documento es la **Single Source of Truth** técnica. Cualquier cambio de modelo, contrato o arquitectura debe actualizarse aquí antes o en el mismo PR que el código.
 
@@ -90,6 +90,20 @@ Resumen declarativo. Schemas JSON formales: **sección 4** y, cuando existan arc
 - Unidades fijadas en el nombre del campo (`_kn`, `_knm`, `_kpa`, `_rad`, `_rad_s`).
 - `alert_level` derivado solo del SSI calculado en el Physics Engine (no recalculado por el cliente).
 - Divergencia código ↔ schema: prevalece este SPEC hasta versionar `.schema.json`.
+
+### 1.5 Restricciones arquitectónicas
+
+Decisiones **no negociables** derivadas de ADRs aprobados. Cualquier código o dependencia nueva debe respetarlas o abrir un ADR que las supersede.
+
+| ID | Restricción | Fuente |
+|----|-------------|--------|
+| **ARCH-01** | Núcleo numérico en **Python 3.12+ / NumPy**; RK4 y UKF **implementación propia** (sin cajas negras). | ADR-001 · NG-07 |
+| **ARCH-02** | **Monolito modular por dominio** (`src/engine`, `pipeline`, `advisor`, `ui`); un proceso Python para API + motor; **sin microservicios** en Sprint 1. | ADR-002 |
+| **ARCH-03** | Buffer streaming Sprint 1: **`TimeSyncBuffer` in-memory**; sin SQL ni data lake (NG-09). Redis Streams = roadmap RF-10, no requisito del lazo actual. | ADR-003 · RF-10 |
+| **ARCH-04** | Contratos JSON Schema + Pydantic en el borde; UI consume solo `broadcast.state.v1` (no recalcula SSI). | ADR-001 · RF-12 |
+| **ARCH-05** | **Prohibido** introducir frameworks, bases de datos o servicios externos no declarados en un **ADR aprobado**; ante duda, proponer ADR nuevo. | `.cursor/rules/governance.mdc` |
+
+Diagramas C4 oficiales ADI TP2: [`docs/arquitectura/C4-contexto.md`](docs/arquitectura/C4-contexto.md), [`docs/arquitectura/C4-contenedores.md`](docs/arquitectura/C4-contenedores.md).
 
 ---
 
@@ -661,6 +675,16 @@ Para entregables posteriores del sprint (fuera de este documento como “hechos�
 
 ---
 
+## Changelog (versiones SPEC)
+
+| Versión | Fecha | Motivo |
+|---------|-------|--------|
+| 1.0.0 | 2026-08-24 | Inicialización gobernanza PP3 |
+| 1.1.0 | 2026-08-25 | Baseline declarativa Sprint 1 (RF, Non-Goals, contratos) |
+| 2.0.0 | 2026-08-31 | **ADI TP2:** restricciones arquitectónicas (§1.5), trazabilidad ADR-001/002/003, diagramas C4 formales. RF-10 permanece P2 con buffer in-memory (ADR-003). |
+
+---
+
 ## 8. Glosario breve
 
 | Término | Definición |
@@ -675,4 +699,4 @@ Para entregables posteriores del sprint (fuera de este documento como “hechos�
 
 ---
 
-*Fin de SPEC.md v1.1.0 — Baseline Sprint 1 (especificación declarativa)*
+*Fin de SPEC.md v2.0.0 — Restricciones arquitectónicas + baseline Sprint 1*

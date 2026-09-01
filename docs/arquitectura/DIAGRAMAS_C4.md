@@ -2,11 +2,18 @@
 
 **SSOT:** [`SPEC.md`](../../SPEC.md) · **Auditoría:** [`docs/auditoria/auditoria-sprint1.md`](../auditoria/auditoria-sprint1.md)
 
-Este documento describe el flujo de datos de **streaming e ingesta** (`src/pipeline/`) y su relación con el Physics Engine.
+**Vistas C4 ADI TP2 (oficiales):**
+
+- [`C4-contexto.md`](C4-contexto.md) — nivel 1
+- [`C4-contenedores.md`](C4-contenedores.md) — nivel 2
+
+Este documento amplía con flujos de streaming, advisor y UI (detalle operativo).
 
 ---
 
 ## 1. Contexto (C4 nivel 1)
+
+Ver diagrama canónico en [`C4-contexto.md`](C4-contexto.md). Resumen histórico:
 
 ```mermaid
 flowchart TB
@@ -24,6 +31,8 @@ flowchart TB
 ---
 
 ## 2. Contenedores (C4 nivel 2)
+
+Ver diagrama canónico en [`C4-contenedores.md`](C4-contenedores.md). Resumen histórico:
 
 ```mermaid
 flowchart LR
