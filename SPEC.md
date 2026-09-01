@@ -4,8 +4,8 @@
 **Repositorio:** `IES9018/lautaro_lopez-drilling-telemetry-engine`  
 **Asignatura:** Práctica Profesionalizante III (PP3) · IES 9-018 · Ciclo 2026  
 **Sprint 1:** 24 ago – 18 sep 2026  
-**Versión del documento:** 2.0.0  
-**Estado:** Baseline Sprint 1 + restricciones arquitectónicas (ADI TP2)
+**Versión del documento:** 3.0.0  
+**Estado:** Baseline Sprint 1 + restricciones arquitectónicas (ADI TP2) + criterios UI/HCI (ADI TP3)
 
 Este documento es la **Single Source of Truth** técnica. Cualquier cambio de modelo, contrato o arquitectura debe actualizarse aquí antes o en el mismo PR que el código.
 
@@ -56,6 +56,107 @@ Gobernanza: [`.cursor/rules/`](.cursor/rules/) · Operación: [`INSTRUCTIONS.md`
 | **RF-13** | Gobernanza modular por dominio (`.cursor/rules/`) compatible con futuros Cloud Agents sin pisarse. | P0 | docs |
 
 **Criterios de aceptación transversales (trazabilidad):** tipado estricto (mypy / TypeScript `strict`); commits convencionales y Git Flow `feature/*` → `develop` → `main`; contraste de fórmulas contra las secciones 2.x de este SPEC.
+
+#### 1.2.1 Criterios de aceptación de interfaz (Gherkin) — ADI TP3
+
+Criterios para RF de UI y Advisor en pantallas críticas documentadas en [`docs/diseno/wireframes/`](docs/diseno/wireframes/). Stack UI: [ADR-004](docs/adr/ADR-004-stack-ui.md).
+
+**RF-08 — Broadcast WebSocket → UI**
+
+```gherkin
+Feature: Consumo de broadcast.state.v1 en el gemelo digital
+
+  Scenario: Frames en tiempo real con conexión activa
+    Given el frontend está en el dashboard gemelo digital
+    And el WebSocket /ws/telemetry está conectado
+    When el backend publica un frame válido broadcast.state.v1
+    Then el gauge SSI muestra el valor ssi del frame en menos de 100 ms percibidos
+    And el canvas 3D refleja torsional_deformation_rad del mismo frame_id
+
+  Scenario: Estado desconectado visible
+    Given el usuario abrió el dashboard
+    When el WebSocket se cierra sin frames nuevos por más de 2 s
+    Then el ConnectionBadge muestra estado disconnected o reconnecting
+    And se muestra timestamp del último frame recibido si existió
+```
+
+**RF-09 — Visualización 3D torsional**
+
+```gherkin
+Feature: Deformación torsional 3D de la sarta
+
+  Scenario: Render nodal desde broadcast
+    Given un frame con ukf_state.theta_rad y torsional_deformation_rad de N nodos
+    When el DrillStringCanvas está montado en el cliente
+    Then se renderiza una sarta con N segmentos visibles
+    And la deformación visual cambia cuando llegan frames subsiguientes
+
+  Scenario: Alerta textual además de color en SSI
+    Given un frame con alert_level critical
+    When el SsiGauge renderiza el régimen
+    Then se muestra badge textual CRITICAL además del sector rojo del gauge
+    And el valor numérico ssi es visible con contraste AA (texto principal sobre fondo panel)
+```
+
+**RF-07 — Alerta crítica y LLM Advisor (aspecto UI)**
+
+```gherkin
+Feature: Advisor SOP ante SSI crítico
+
+  Scenario: Recomendación tras evento crítico
+    Given la simulación eleva SSI por encima de 1.0
+    And el backend emite alert_level critical en el broadcast
+    When el Advisor completa el debounce y envía advisor_recommendation
+    Then el Advisor Feed muestra al menos una RecommendationCard
+    And la card incluye texto SOP legible y triggered_at
+
+  Scenario: Empty state contextual
+    Given SSI está por debajo del umbral de Advisor
+    When el Advisor Feed no tiene recomendaciones
+    Then se muestra mensaje indicando que SOP aparece cuando SSI supera 1.0
+```
+
+**RF-UI-01 — Controles de simulación (demo)**
+
+```gherkin
+Feature: Simulation Control en dashboard
+
+  Scenario: Presets con etiqueta humana
+    Given el panel Simulation Control está visible
+    When el usuario enfoca un preset de escenario
+    Then la etiqueta visible es legible (Normal, Stick-slip, Choke)
+    And el valor técnico ScenarioName queda disponible para aria-label o tooltip
+
+  Scenario: Error de API visible
+    Given el usuario pulsa Start
+    When la API de control responde con error
+    Then se muestra mensaje de error en el panel sin silenciar el fallo
+```
+
+**RF-UI-ACC — Accesibilidad (pantallas críticas)**
+
+Requisito transversal Sprint 1 UI (TP3): **navegación por teclado** y **contraste mínimo WCAG 2.1 AA (4.5:1 texto normal)** en:
+
+1. Dashboard gemelo digital ([wireframe](docs/diseno/wireframes/dashboard-gemelo-digital.md))
+2. Vista de alerta Stick-Slip + Advisor ([wireframe](docs/diseno/wireframes/alerta-stick-slip-advisor.md))
+
+```gherkin
+Feature: Accesibilidad en pantallas críticas
+
+  Scenario: Orden de tabulación en dashboard
+    Given el usuario navega solo con teclado en el dashboard
+    When presiona Tab repetidamente desde el encabezado
+    Then puede alcanzar gauges SSI y RPM, botones Start/Stop y presets
+    And puede alcanzar el Advisor Feed sin quedar atrapado solo en el canvas 3D
+
+  Scenario: Contraste AA en régimen crítico
+    Given alert_level es critical en pantalla de alerta
+    When se muestra banner STICK-SLIP CRITICAL y texto SOP
+    Then el texto principal sobre fondo panel cumple contraste >= 4.5:1
+    And el estado crítico no depende únicamente del color rojo del gauge
+```
+
+Diseño HCI: [`docs/diseno/usuarios.md`](docs/diseno/usuarios.md) · auditoría: [`docs/diseno/auditoria-heuristica.md`](docs/diseno/auditoria-heuristica.md).
 
 ### 1.3 Non-Goals (qué NO se construye en esta etapa)
 
@@ -682,6 +783,7 @@ Para entregables posteriores del sprint (fuera de este documento como “hechos�
 | 1.0.0 | 2026-08-24 | Inicialización gobernanza PP3 |
 | 1.1.0 | 2026-08-25 | Baseline declarativa Sprint 1 (RF, Non-Goals, contratos) |
 | 2.0.0 | 2026-08-31 | **ADI TP2:** restricciones arquitectónicas (§1.5), trazabilidad ADR-001/002/003, diagramas C4 formales. RF-10 permanece P2 con buffer in-memory (ADR-003). |
+| 3.0.0 | 2026-08-31 | **ADI TP3:** §1.2.1 criterios Gherkin UI (RF-07/08/09, RF-UI-01, RF-UI-ACC), ADR-004 stack UI, personas/journeys/wireframes y auditoría Nielsen en `docs/diseno/`. |
 
 ---
 
@@ -699,4 +801,4 @@ Para entregables posteriores del sprint (fuera de este documento como “hechos�
 
 ---
 
-*Fin de SPEC.md v2.0.0 — Restricciones arquitectónicas + baseline Sprint 1*
+*Fin de SPEC.md v3.0.0 — Restricciones arquitectónicas + criterios UI/HCI (ADI TP3)*
