@@ -63,6 +63,19 @@ Motor de estimación de estado en tiempo real y gemelo digital para monitoreo de
 | SPEC v4 (schemas OpenAPI + changelog) | [`SPEC.md`](SPEC.md) §1.4 |
 | Evidencia de entrega | PR `feature/tp4-api-first` → `main` |
 
+## Entrega ADI — TP5 (Estrategia mobile)
+
+| Entregable TP5 | Ubicación en este repo |
+|----------------|------------------------|
+| ADR estrategia mobile (matriz decisión) | [`docs/adr/ADR-006-estrategia-mobile.md`](docs/adr/ADR-006-estrategia-mobile.md) |
+| Presupuestos rendimiento (LCP, INP, JS) | [`docs/arquitectura/presupuestos-rendimiento.md`](docs/arquitectura/presupuestos-rendimiento.md) |
+| Lighthouse CI config móvil | [`docs/arquitectura/lighthouserc.mobile.json`](docs/arquitectura/lighthouserc.mobile.json) |
+| Offline Non-Goal justificado | [`docs/arquitectura/offline-sync.md`](docs/arquitectura/offline-sync.md) |
+| Wireframes móvil (&lt; 400 px) | [`docs/diseno/wireframes/*-mobile.md`](docs/diseno/wireframes/) |
+| SPEC v5 (RNF-01…05 + changelog) | [`SPEC.md`](SPEC.md) §1.6 |
+| Script presupuesto JS (CI TP6) | [`scripts/check-js-budget.sh`](scripts/check-js-budget.sh) |
+| Evidencia de entrega | PR `feature/tp5-mobile` → `main` |
+
 ## Estado del proyecto
 
 **Fase actual:** Physics + UKF + simulador + pipeline + **gemelo digital 3D** (Sprint 1 en curso).

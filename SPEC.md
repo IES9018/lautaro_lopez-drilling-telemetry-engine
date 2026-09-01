@@ -4,8 +4,8 @@
 **Repositorio:** `IES9018/lautaro_lopez-drilling-telemetry-engine`  
 **Asignatura:** Práctica Profesionalizante III (PP3) · IES 9-018 · Ciclo 2026  
 **Sprint 1:** 24 ago – 18 sep 2026  
-**Versión del documento:** 4.0.0  
-**Estado:** Baseline Sprint 1 + restricciones arquitectónicas (ADI TP2) + criterios UI/HCI (ADI TP3) + contrato API-first (ADI TP4)
+**Versión del documento:** 5.0.0  
+**Estado:** Baseline Sprint 1 + restricciones arquitectónicas (ADI TP2) + criterios UI/HCI (ADI TP3) + contrato API-first (ADI TP4) + RNF mobile (ADI TP5)
 
 Este documento es la **Single Source of Truth** técnica. Cualquier cambio de modelo, contrato o arquitectura debe actualizarse aquí antes o en el mismo PR que el código.
 
@@ -173,6 +173,7 @@ Diseño HCI: [`docs/diseno/usuarios.md`](docs/diseno/usuarios.md) · auditoría:
 | **NG-07** Librerías “todo en uno” de simulación/filtrado | Prohibido resolver RK4/UKF como caja negra (ver `.cursor/rules/physics-engine.mdc`). |
 | **NG-08** App móvil / multi-tenant / auth corporativa completa | Fuera del MVP académico del sprint. |
 | **NG-09** Persistencia histórica tipo data lake / BI | Buffer de streaming sí; data warehouse y reportes gerenciales no. |
+| **NG-MOBILE-01** Offline-first / sync telemetría sin red | Monitoreo live requiere WS; ver [`docs/arquitectura/offline-sync.md`](docs/arquitectura/offline-sync.md) (ADI TP5). |
 | **NG-10** Push directo a `main`/`develop` o mono-repo sin Git Flow | Proceso institucional obligatorio; no es atajo aceptable. |
 
 ### 1.4 Contratos de datos principales
@@ -209,6 +210,20 @@ Decisiones **no negociables** derivadas de ADRs aprobados. Cualquier código o d
 | **ARCH-05** | **Prohibido** introducir frameworks, bases de datos o servicios externos no declarados en un **ADR aprobado**; ante duda, proponer ADR nuevo. | `.cursor/rules/governance.mdc` |
 
 Diagramas C4 oficiales ADI TP2: [`docs/arquitectura/C4-contexto.md`](docs/arquitectura/C4-contexto.md), [`docs/arquitectura/C4-contenedores.md`](docs/arquitectura/C4-contenedores.md).
+
+### 1.6 Requisitos no funcionales (medibles) — ADI TP5
+
+Presupuestos numéricos para pantallas críticas móvil (&lt; 400 px). Detalle y comandos: [`docs/arquitectura/presupuestos-rendimiento.md`](docs/arquitectura/presupuestos-rendimiento.md). Estrategia mobile: [ADR-006](docs/adr/ADR-006-estrategia-mobile.md).
+
+| ID | Requisito | Presupuesto | Verificación |
+|----|-----------|-------------|--------------|
+| **RNF-01** | LCP móvil en dashboard / alerta (4G simulada) | **&lt; 2,5 s** | Lighthouse CI — [`lighthouserc.mobile.json`](docs/arquitectura/lighthouserc.mobile.json) |
+| **RNF-02** | INP en controles críticos (Start/Stop, Stop en alerta) | **&lt; 200 ms** | Lighthouse CI (auditoría INP) |
+| **RNF-03** | Peso JS inicial gzip del **shell** (sin chunk 3D lazy) | **&lt; 200 KB** | `source-map-explorer` / [`scripts/check-js-budget.sh`](scripts/check-js-budget.sh) |
+| **RNF-04** | Chunk lazy `DrillStringCanvas` (Three.js/R3F) | Documentado; no bloquea RNF-01; meta &lt; 500 KB gzip Sprint 3 | `source-map-explorer` chunk aislado |
+| **RNF-05** | Targets táctiles en pantallas críticas móvil | **≥ 48 px** (Material); ≥ 44 pt Apple HIG | Wireframes móvil + tests UI / review |
+
+**Offline:** no requisito — Non-Goal **NG-MOBILE-01** en [`offline-sync.md`](docs/arquitectura/offline-sync.md).
 
 ---
 
@@ -791,6 +806,7 @@ Para entregables posteriores del sprint (fuera de este documento como “hechos�
 | 2.0.0 | 2026-08-31 | **ADI TP2:** restricciones arquitectónicas (§1.5), trazabilidad ADR-001/002/003, diagramas C4 formales. RF-10 permanece P2 con buffer in-memory (ADR-003). |
 | 3.0.0 | 2026-08-31 | **ADI TP3:** §1.2.1 criterios Gherkin UI (RF-07/08/09, RF-UI-01, RF-UI-ACC), ADR-004 stack UI, personas/journeys/wireframes y auditoría Nielsen en `docs/diseno/`. |
 | 4.0.0 | 2026-08-31 | **ADI TP4:** `docs/arquitectura/api-contracts.yaml` (OpenAPI 5 endpoints), ADR-005 estrategia web, `docs/seguridad/threat-model-lite.md`, arnés v3 seguridad; §1.4 referencia schemas OpenAPI. |
+| 5.0.0 | 2026-08-31 | **ADI TP5:** §1.6 RNF-01…05 medibles, ADR-006 estrategia mobile, presupuestos rendimiento, offline Non-Goal NG-MOBILE-01, wireframes móvil. |
 
 ---
 
@@ -808,4 +824,4 @@ Para entregables posteriores del sprint (fuera de este documento como “hechos�
 
 ---
 
-*Fin de SPEC.md v4.0.0 — Contrato API-first + baseline Sprint 1*
+*Fin de SPEC.md v5.0.0 — RNF mobile medibles + baseline Sprint 1*

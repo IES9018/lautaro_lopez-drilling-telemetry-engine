@@ -15,6 +15,8 @@ Este documento es el runbook diario. Las restricciones duras viven en [`.cursor/
 
 **ADI TP4:** OpenAPI, ADR-005, threat model, arnés v3 + SPEC v4 — ver [`README.md`](README.md#entrega-adi--tp4-api-first-y-web-segura).
 
+**ADI TP5:** ADR-006, presupuestos RNF, offline Non-Goal, wireframes móvil + SPEC v5 — ver [`README.md`](README.md#entrega-adi--tp5-estrategia-mobile).
+
 ---
 
 ## 1. Árbol de carpetas
