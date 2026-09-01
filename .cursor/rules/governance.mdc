@@ -38,6 +38,14 @@ Commits: `feat:`, `fix:`, `docs:`, `ci:`, `chore:`, `test:` únicamente.
 - Cambiar contratos sin actualizar `SPEC.md` / `docs/contratos/`.
 - Introducir frameworks, bases de datos o servicios externos **no declarados en un ADR aprobado** (`docs/adr/`). Ante duda, proponer ADR nuevo antes de codificar.
 
+## Seguridad web (arnés v3 — ADI TP4)
+
+- **PROHIBIDO** hardcodear secrets, tokens o credenciales (usar variables de entorno).
+- **OBLIGATORIO** validar y sanear toda entrada externa en el borde del sistema (REST query/body, futuro ingest).
+- **OBLIGATORIO:** todo endpoint nuevo debe estar en `docs/arquitectura/api-contracts.yaml` **ANTES** de implementarse.
+
+Threat model: [`docs/seguridad/threat-model-lite.md`](../../docs/seguridad/threat-model-lite.md).
+
 ## Auditoría IA
 
 Fórmulas, constantes o convergencia generadas por IA → registrar en `docs/auditoria/auditoria-sprint1.md`.

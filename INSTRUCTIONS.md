@@ -13,6 +13,8 @@ Este documento es el runbook diario. Las restricciones duras viven en [`.cursor/
 
 **ADI TP3:** personas, wireframes, auditoría Nielsen, ADR-004 + SPEC v3 — ver [`README.md`](README.md#entrega-adi--tp3-diseño-hci).
 
+**ADI TP4:** OpenAPI, ADR-005, threat model, arnés v3 + SPEC v4 — ver [`README.md`](README.md#entrega-adi--tp4-api-first-y-web-segura).
+
 ---
 
 ## 1. Árbol de carpetas

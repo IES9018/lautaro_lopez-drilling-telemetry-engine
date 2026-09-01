@@ -4,8 +4,8 @@
 **Repositorio:** `IES9018/lautaro_lopez-drilling-telemetry-engine`  
 **Asignatura:** Práctica Profesionalizante III (PP3) · IES 9-018 · Ciclo 2026  
 **Sprint 1:** 24 ago – 18 sep 2026  
-**Versión del documento:** 3.0.0  
-**Estado:** Baseline Sprint 1 + restricciones arquitectónicas (ADI TP2) + criterios UI/HCI (ADI TP3)
+**Versión del documento:** 4.0.0  
+**Estado:** Baseline Sprint 1 + restricciones arquitectónicas (ADI TP2) + criterios UI/HCI (ADI TP3) + contrato API-first (ADI TP4)
 
 Este documento es la **Single Source of Truth** técnica. Cualquier cambio de modelo, contrato o arquitectura debe actualizarse aquí antes o en el mismo PR que el código.
 
@@ -177,13 +177,16 @@ Diseño HCI: [`docs/diseno/usuarios.md`](docs/diseno/usuarios.md) · auditoría:
 
 ### 1.4 Contratos de datos principales
 
-Resumen declarativo. Schemas JSON formales: **sección 4** y, cuando existan archivos, `docs/contratos/`.
+Resumen declarativo. Schemas JSON formales: **sección 4** y `docs/contratos/`. **Contrato API REST/WS (OpenAPI):** [`docs/arquitectura/api-contracts.yaml`](docs/arquitectura/api-contracts.yaml) — fuente para endpoints públicos (ADI TP4). Los payloads de telemetría y Advisor en API referencian por **nombre de schema OpenAPI** los componentes siguientes.
 
-| Contrato | ID | Tasa / trigger | Campos principales |
-|----------|----|----------------|--------------------|
-| Telemetría de superficie | `surface.telemetry.v1` | 100 Hz | `timestamp`, `hookload_kn`, `rpm_surface`, `torque_surface_knm`, `standpipe_pressure_kpa` |
-| Telemetría MWD | `mwd.telemetry.v1` | ~0.05 Hz | `timestamp`, `acoustic_delay_s` (15–45), `rpm_downhole`, `torque_downhole_knm`, `wob_kn` |
-| Broadcast gemelo digital | `broadcast.state.v1` | ~60 FPS | `timestamp`, `frame_id`, `ukf_state` (`theta_rad`, `omega_rad_s`, …), `torsional_deformation_rad[]`, `ssi`, `alert_level` ∈ {`normal`,`warning`,`critical`} |
+| Contrato | ID | Schema OpenAPI (`components.schemas`) | Tasa / trigger | Campos principales |
+|----------|----|---------------------------------------|----------------|--------------------|
+| Telemetría de superficie | `surface.telemetry.v1` | *(ingest interno; ver §4.1)* | 100 Hz | `timestamp`, `hookload_kn`, `rpm_surface`, `torque_surface_knm`, `standpipe_pressure_kpa` |
+| Telemetría MWD | `mwd.telemetry.v1` | *(ingest interno; ver §4.2)* | ~0.05 Hz | `timestamp`, `acoustic_delay_s` (15–45), `rpm_downhole`, `torque_downhole_knm`, `wob_kn` |
+| Broadcast gemelo digital | `broadcast.state.v1` | **`TelemetryStreamBroadcast`** (+ `UkfState`) | ~60 FPS WS | `timestamp`, `frame_id`, `ukf_state`, `torsional_deformation_rad[]`, `ssi`, `alert_level` |
+| Envelope WS telemetría | `telemetry_frame` | **`WsTelemetryEnvelope`** (`type` + `data`) | push servidor | `data` → `TelemetryStreamBroadcast` |
+| Recomendación Advisor | `advisor.recommendation.v1` | **`AdvisorRecommendationRecord`** (+ `AdvisorRecommendation`, `AdvisorIncidentSnapshot`) | evento SSI crítico | `recommendation`, `triggered_at`, `snapshot` |
+| Control simulación | — | **`StartSimulationRequest`**, **`SetPresetRequest`**, **`OrchestratorStatus`** | REST | `preset`, `running`, `sim_time_s`, `mwd_drops` |
 
 **Reglas de contrato:**
 
@@ -191,6 +194,7 @@ Resumen declarativo. Schemas JSON formales: **sección 4** y, cuando existan arc
 - Unidades fijadas en el nombre del campo (`_kn`, `_knm`, `_kpa`, `_rad`, `_rad_s`).
 - `alert_level` derivado solo del SSI calculado en el Physics Engine (no recalculado por el cliente).
 - Divergencia código ↔ schema: prevalece este SPEC hasta versionar `.schema.json`.
+- Divergencia REST/WS ↔ implementación FastAPI: prevalece `api-contracts.yaml` hasta actualizar SPEC en el mismo PR.
 
 ### 1.5 Restricciones arquitectónicas
 
@@ -612,6 +616,8 @@ Vista declarativa resumida: **§1.4**. Los schemas canónicos viven también (cu
 
 ### 4.3 Broadcast WebSocket — `broadcast.state.v1`
 
+**Schema OpenAPI:** `TelemetryStreamBroadcast` · envelope WS: `WsTelemetryEnvelope` con `type: telemetry_frame`.
+
 ```json
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -784,6 +790,7 @@ Para entregables posteriores del sprint (fuera de este documento como “hechos�
 | 1.1.0 | 2026-08-25 | Baseline declarativa Sprint 1 (RF, Non-Goals, contratos) |
 | 2.0.0 | 2026-08-31 | **ADI TP2:** restricciones arquitectónicas (§1.5), trazabilidad ADR-001/002/003, diagramas C4 formales. RF-10 permanece P2 con buffer in-memory (ADR-003). |
 | 3.0.0 | 2026-08-31 | **ADI TP3:** §1.2.1 criterios Gherkin UI (RF-07/08/09, RF-UI-01, RF-UI-ACC), ADR-004 stack UI, personas/journeys/wireframes y auditoría Nielsen en `docs/diseno/`. |
+| 4.0.0 | 2026-08-31 | **ADI TP4:** `docs/arquitectura/api-contracts.yaml` (OpenAPI 5 endpoints), ADR-005 estrategia web, `docs/seguridad/threat-model-lite.md`, arnés v3 seguridad; §1.4 referencia schemas OpenAPI. |
 
 ---
 
@@ -801,4 +808,4 @@ Para entregables posteriores del sprint (fuera de este documento como “hechos�
 
 ---
 
-*Fin de SPEC.md v3.0.0 — Restricciones arquitectónicas + criterios UI/HCI (ADI TP3)*
+*Fin de SPEC.md v4.0.0 — Contrato API-first + baseline Sprint 1*

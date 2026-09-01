@@ -51,6 +51,18 @@ Motor de estimación de estado en tiempo real y gemelo digital para monitoreo de
 | SPEC v3 (Gherkin UI + accesibilidad + changelog) | [`SPEC.md`](SPEC.md) §1.2.1 |
 | Evidencia de entrega | PR `feature/tp3-hci` → `main` |
 
+## Entrega ADI — TP4 (API-first y web segura)
+
+| Entregable TP4 | Ubicación en este repo |
+|----------------|------------------------|
+| Contrato OpenAPI 3.x (5 endpoints críticos) | [`docs/arquitectura/api-contracts.yaml`](docs/arquitectura/api-contracts.yaml) |
+| Validación lint (Redocly) | [`docs/arquitectura/README.md`](docs/arquitectura/README.md) |
+| ADR estrategia web | [`docs/adr/ADR-005-estrategia-web.md`](docs/adr/ADR-005-estrategia-web.md) |
+| Threat model lite STRIDE | [`docs/seguridad/threat-model-lite.md`](docs/seguridad/threat-model-lite.md) |
+| Arnés v3 (reglas seguridad) | [`.cursor/rules/governance.mdc`](.cursor/rules/governance.mdc) |
+| SPEC v4 (schemas OpenAPI + changelog) | [`SPEC.md`](SPEC.md) §1.4 |
+| Evidencia de entrega | PR `feature/tp4-api-first` → `main` |
+
 ## Estado del proyecto
 
 **Fase actual:** Physics + UKF + simulador + pipeline + **gemelo digital 3D** (Sprint 1 en curso).

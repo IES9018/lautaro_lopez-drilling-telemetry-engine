@@ -1,0 +1,439 @@
+openapi: 3.0.3
+info:
+  title: Drilling Telemetry Engine — Pipeline API
+  version: 1.0.0
+  license:
+    name: Academic use — IES 9-018 PP3
+    url: https://github.com/IES9018/lautaro_lopez-drilling-telemetry-engine
+  description: |
+    Contrato API-first (ADI TP4) para el gemelo digital Stick-Slip.
+    Alineado a SPEC v4, journeys TP3 y implementación FastAPI en `src/pipeline/api/`.
+
+    **WebSocket:** el stream en tiempo real usa `/ws/telemetry` (envelopes `telemetry_frame` y
+    `advisor_recommendation`). Los frames de telemetría cumplen el schema `TelemetryStreamBroadcast`
+    (`broadcast.state.v1`).
+
+    **Orden de cambio:** modificar este archivo antes que el código (arnés v3).
+
+servers:
+  - url: http://localhost:8000
+    description: FastAPI local (Sprint 1)
+  - url: https://api.drilling-telemetry.example
+    description: Despliegue objetivo PP3 (placeholder)
+
+tags:
+  - name: telemetry-ws
+    description: Streaming soft real-time (~60 FPS)
+  - name: simulation
+    description: Control del simulador de pozo (demo académica)
+  - name: advisor
+    description: Historial de recomendaciones SOP (LLM Advisor)
+
+security:
+  - BearerAuth: []
+
+paths:
+  /ws/telemetry:
+    get:
+      tags: [telemetry-ws]
+      operationId: connectTelemetryWebSocket
+      summary: Abrir WebSocket de telemetría consolidada
+      description: |
+        El cliente envía `GET` con cabecera `Upgrade: websocket`. Tras el handshake 101,
+        el servidor empuja envelopes JSON sin solicitud del cliente:
+
+        - `{"type":"telemetry_frame","data":TelemetryStreamBroadcast}` — ~60 FPS
+        - `{"type":"advisor_recommendation","data":AdvisorRecommendationRecord}` — evento SSI crítico
+
+        Journey TP3 #1 (monitoreo continuo). RF-08.
+      security: []
+      responses:
+        "200":
+          description: |
+            Documentación OpenAPI — el cliente real usa upgrade WebSocket (101).
+            Payload servidor: envelope con `data` conforme a `TelemetryStreamBroadcast`.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WsTelemetryEnvelope"
+        "101":
+          description: Switching Protocols — conexión WebSocket establecida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WsTelemetryEnvelope"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/v1/simulation/start:
+    post:
+      tags: [simulation]
+      operationId: startSimulation
+      summary: Arrancar loop físico del simulador
+      description: |
+        Inicia el orquestador RK4/UKF. Opcionalmente carga un preset de escenario.
+        Journey TP3 #2 (demo stick-slip). RF-UI-01.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StartSimulationRequest"
+      responses:
+        "200":
+          description: Simulación arrancada (o ya estaba en marcha)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrchestratorStatus"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/v1/simulation/stop:
+    post:
+      tags: [simulation]
+      operationId: stopSimulation
+      summary: Detener loop físico del simulador
+      description: |
+        Detiene el orquestador. Journey TP3 #2 — acción primaria ante alerta crítica en demo.
+      responses:
+        "200":
+          description: Simulación detenida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrchestratorStatus"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/v1/simulation/preset:
+    post:
+      tags: [simulation]
+      operationId: setSimulationPreset
+      summary: Cambiar preset del WellSimulator
+      description: |
+        Selecciona escenario (`normal`, `severe_stick_slip`, `transient_choke`).
+        Journey TP3 #2 — supervisor elige escenario Stick-slip antes de Start.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetPresetRequest"
+      responses:
+        "200":
+          description: Preset aplicado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrchestratorStatus"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/v1/advisor/recommendations:
+    get:
+      tags: [advisor]
+      operationId: listAdvisorRecommendations
+      summary: Listar recomendaciones SOP recientes
+      description: |
+        Historial acotado (más reciente primero). Complementa el stream WS
+        `advisor_recommendation`. Journey TP3 #2 — lectura SOP tras SSI crítico. RF-07.
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          description: Cantidad máxima de registros (1–200)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+            default: 50
+      responses:
+        "200":
+          description: Lista de recomendaciones
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdvisorRecommendationRecord"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        JWT firmado (HS256/RS256) que identifica al operador o servicio.
+        Sprint 1: auth opcional en dev (`security: []` en WS); producción PP3 exige token.
+
+  schemas:
+    ScenarioName:
+      type: string
+      enum: [normal, severe_stick_slip, transient_choke]
+      description: Preset del WellSimulator
+
+    AlertLevel:
+      type: string
+      enum: [normal, warning, critical]
+
+    IncidentType:
+      type: string
+      enum: [stick_slip, over_torque, transient_choke, unknown]
+
+    SeverityLevel:
+      type: string
+      enum: [warning, critical]
+
+    StartSimulationRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        preset:
+          type: string
+          enum: [normal, severe_stick_slip, transient_choke]
+          nullable: true
+          description: Escenario a cargar al arrancar; omitir o null conserva el actual
+
+    WsTelemetryEnvelope:
+      type: object
+      additionalProperties: false
+      required: [type, data]
+      properties:
+        type:
+          type: string
+          enum: [telemetry_frame, advisor_recommendation]
+        data:
+          oneOf:
+            - $ref: "#/components/schemas/TelemetryStreamBroadcast"
+            - $ref: "#/components/schemas/AdvisorRecommendationRecord"
+
+    WsAdvisorEnvelope:
+      type: object
+      additionalProperties: false
+      required: [type, data]
+      properties:
+        type:
+          type: string
+          enum: [advisor_recommendation]
+        data:
+          $ref: "#/components/schemas/AdvisorRecommendationRecord"
+
+    SetPresetRequest:
+      type: object
+      additionalProperties: false
+      required: [preset]
+      properties:
+        preset:
+          $ref: "#/components/schemas/ScenarioName"
+
+    OrchestratorStatus:
+      type: object
+      additionalProperties: false
+      required: [running, preset, sim_time_s, mwd_drops]
+      properties:
+        running:
+          type: boolean
+        preset:
+          $ref: "#/components/schemas/ScenarioName"
+        sim_time_s:
+          type: number
+          minimum: 0
+        mwd_drops:
+          type: integer
+          minimum: 0
+
+    UkfState:
+      type: object
+      additionalProperties: false
+      required:
+        - theta_rad
+        - omega_rad_s
+        - rpm_bit_est
+        - torque_bit_est_knm
+      properties:
+        theta_rad:
+          type: array
+          items:
+            type: number
+        omega_rad_s:
+          type: array
+          items:
+            type: number
+        rpm_bit_est:
+          type: number
+          minimum: 0
+        torque_bit_est_knm:
+          type: number
+
+    TelemetryStreamBroadcast:
+      type: object
+      description: Contrato broadcast.state.v1 (payload de telemetry_frame)
+      additionalProperties: false
+      required:
+        - timestamp
+        - frame_id
+        - ukf_state
+        - torsional_deformation_rad
+        - ssi
+        - alert_level
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        frame_id:
+          type: integer
+          minimum: 0
+        ukf_state:
+          $ref: "#/components/schemas/UkfState"
+        torsional_deformation_rad:
+          type: array
+          items:
+            type: number
+        ssi:
+          type: number
+          minimum: 0
+        alert_level:
+          $ref: "#/components/schemas/AlertLevel"
+
+    AdvisorIncidentSnapshot:
+      type: object
+      additionalProperties: false
+      required:
+        - timestamp
+        - surface_rpm
+        - estimated_bit_rpm
+        - wob_kn
+        - ssi
+        - regime
+        - torque_contrast
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        surface_rpm:
+          type: number
+          minimum: 0
+        estimated_bit_rpm:
+          type: number
+          minimum: 0
+        wob_kn:
+          type: number
+          minimum: 0
+        ssi:
+          type: number
+          minimum: 0
+        regime:
+          $ref: "#/components/schemas/AlertLevel"
+        torque_contrast:
+          type: number
+
+    AdvisorRecommendation:
+      type: object
+      additionalProperties: false
+      required:
+        - incident_type
+        - severity_level
+        - physical_root_cause
+        - immediate_actions
+        - target_wob_kn
+        - target_rpm
+        - rationale
+      properties:
+        incident_type:
+          $ref: "#/components/schemas/IncidentType"
+        severity_level:
+          $ref: "#/components/schemas/SeverityLevel"
+        physical_root_cause:
+          type: string
+          maxLength: 500
+        immediate_actions:
+          type: array
+          minItems: 1
+          maxItems: 6
+          items:
+            type: string
+            maxLength: 200
+        target_wob_kn:
+          type: number
+          minimum: 0
+          maximum: 200
+        target_rpm:
+          type: number
+          minimum: 0
+          maximum: 220
+        rationale:
+          type: string
+          maxLength: 800
+
+    AdvisorRecommendationRecord:
+      type: object
+      additionalProperties: false
+      required: [recommendation, triggered_at, snapshot]
+      properties:
+        recommendation:
+          $ref: "#/components/schemas/AdvisorRecommendation"
+        triggered_at:
+          type: string
+          format: date-time
+        snapshot:
+          $ref: "#/components/schemas/AdvisorIncidentSnapshot"
+
+    ErrorResponse:
+      type: object
+      additionalProperties: false
+      required: [detail]
+      properties:
+        detail:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: object
+
+  responses:
+    BadRequest:
+      description: Entrada inválida o schema rechazado en el borde
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Unauthorized:
+      description: JWT ausente, expirado o inválido
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    NotFound:
+      description: Recurso no encontrado
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    InternalError:
+      description: Error interno del servidor
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
