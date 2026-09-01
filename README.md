@@ -40,6 +40,17 @@ Motor de estimación de estado en tiempo real y gemelo digital para monitoreo de
 | Arnés v2 (regla anti-deps sin ADR) | [`.cursor/rules/governance.mdc`](.cursor/rules/governance.mdc) |
 | Evidencia de entrega | PR `feature/tp2-arquitectura` → `main` |
 
+## Entrega ADI — TP3 (Diseño HCI)
+
+| Entregable TP3 | Ubicación en este repo |
+|----------------|------------------------|
+| Personas + user journeys (Mermaid) | [`docs/diseno/usuarios.md`](docs/diseno/usuarios.md) |
+| Wireframes pantallas críticas (baja fidelidad) | [`docs/diseno/wireframes/`](docs/diseno/wireframes/) |
+| Auditoría heurística Nielsen (10 + correcciones) | [`docs/diseno/auditoria-heuristica.md`](docs/diseno/auditoria-heuristica.md) |
+| ADR stack UI | [`docs/adr/ADR-004-stack-ui.md`](docs/adr/ADR-004-stack-ui.md) |
+| SPEC v3 (Gherkin UI + accesibilidad + changelog) | [`SPEC.md`](SPEC.md) §1.2.1 |
+| Evidencia de entrega | PR `feature/tp3-hci` → `main` |
+
 ## Estado del proyecto
 
 **Fase actual:** Physics + UKF + simulador + pipeline + **gemelo digital 3D** (Sprint 1 en curso).

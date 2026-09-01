@@ -11,6 +11,8 @@ Este documento es el runbook diario. Las restricciones duras viven en [`.cursor/
 
 **ADI TP2:** C4 + ADR-002/003 + SPEC v2 — ver [`README.md`](README.md#entrega-adi--tp2-arquitectura-visible).
 
+**ADI TP3:** personas, wireframes, auditoría Nielsen, ADR-004 + SPEC v3 — ver [`README.md`](README.md#entrega-adi--tp3-diseño-hci).
+
 ---
 
 ## 1. Árbol de carpetas
