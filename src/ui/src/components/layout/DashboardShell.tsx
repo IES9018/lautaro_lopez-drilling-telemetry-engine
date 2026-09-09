@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 
 import { AdvisorFeed } from "@/components/advisor/AdvisorFeed";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { ConnectionBadge } from "@/components/telemetry/ConnectionBadge";
 import { RpmDualGauge } from "@/components/telemetry/RpmDualGauge";
 import { SimulationControls } from "@/components/telemetry/SimulationControls";
@@ -10,21 +11,28 @@ import { SsiGauge } from "@/components/telemetry/SsiGauge";
 import { useSimulationControl } from "@/hooks/useSimulationControl";
 import { useTelemetryStream } from "@/hooks/useTelemetryStream";
 import { radSToRpm } from "@/lib/cn";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 const DrillStringCanvas = dynamic(
   () =>
     import("@/components/3d/DrillStringCanvas").then((m) => m.DrillStringCanvas),
   {
     ssr: false,
-    loading: () => (
-      <div className="flex h-full min-h-[320px] items-center justify-center rounded-xl border border-slate-700/80 bg-slate-950 text-sm text-slate-500">
-        Loading 3D twin…
-      </div>
-    ),
+    loading: () => <CanvasLoadingPlaceholder />,
   },
 );
 
+function CanvasLoadingPlaceholder() {
+  const { dictionary } = useTranslation();
+  return (
+    <div className="flex h-full min-h-[320px] items-center justify-center rounded-xl border border-slate-700/80 bg-slate-950 text-sm text-slate-500">
+      {dictionary.loading3d}
+    </div>
+  );
+}
+
 export function DashboardShell() {
+  const { dictionary } = useTranslation();
   const stream = useTelemetryStream();
   const control = useSimulationControl();
   const frame = stream.latestFrame;
@@ -38,13 +46,14 @@ export function DashboardShell() {
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-semibold tracking-tight text-slate-100 md:text-2xl">
-            Drillstring Digital Twin
+            {dictionary.header.title}
           </h1>
-          <p className="text-sm text-slate-400">
-            Torsional deformation · SSI · LLM Advisor (soft real-time)
-          </p>
+          <p className="text-sm text-slate-400">{dictionary.header.subtitle}</p>
         </div>
-        <ConnectionBadge status={stream.connectionStatus} />
+        <div className="flex flex-wrap items-center gap-2">
+          <LanguageSwitcher />
+          <ConnectionBadge status={stream.connectionStatus} />
+        </div>
       </header>
 
       <div className="grid flex-1 grid-cols-1 gap-4 lg:grid-cols-12">

@@ -1,8 +1,8 @@
-import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { AdvisorFeed } from "@/components/advisor/AdvisorFeed";
 import type { AdvisorRecommendationRecord } from "@/types/advisor";
+import { render, screen } from "@/test/test-utils";
 
 const sample: AdvisorRecommendationRecord = {
   triggered_at: "2026-08-25T12:00:01Z",

@@ -1,7 +1,7 @@
-import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { SsiGauge } from "@/components/telemetry/SsiGauge";
+import { render, screen } from "@/test/test-utils";
 
 describe("SsiGauge", () => {
   it("shows CRITICAL zone for critical alert_level", () => {

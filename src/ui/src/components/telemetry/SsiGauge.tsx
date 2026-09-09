@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/cn";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 import type { AlertLevel } from "@/types/telemetry";
 
 export interface SsiGaugeProps {
@@ -15,13 +16,14 @@ function needleAngle(ssi: number): number {
 }
 
 export function SsiGauge({ ssi, alertLevel }: SsiGaugeProps) {
+  const { dictionary } = useTranslation();
   const angle = needleAngle(ssi);
   const zoneLabel =
     alertLevel === "critical"
-      ? "CRITICAL"
+      ? dictionary.ssiRegimes.critical
       : alertLevel === "warning"
-        ? "WARNING"
-        : "NORMAL";
+        ? dictionary.ssiRegimes.warning
+        : dictionary.ssiRegimes.normal;
 
   return (
     <div
@@ -30,7 +32,7 @@ export function SsiGauge({ ssi, alertLevel }: SsiGaugeProps) {
     >
       <div className="mb-2 flex items-baseline justify-between">
         <h3 className="text-sm font-semibold tracking-wide text-slate-200">
-          SSI Gauge
+          {dictionary.ssiGauge.title}
         </h3>
         <span
           className={cn(
