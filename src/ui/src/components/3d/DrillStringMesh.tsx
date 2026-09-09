@@ -26,6 +26,14 @@ const GROOVE_COUNT = 6;
 const STABILIZER_FINS = 3;
 const PDC_CUTTERS = 8;
 
+/** Idle spin (rad/s) when no telemetry frame is available. */
+const IDLE_OMEGA_TOP = 0.6;
+/** Each deeper node spins slower than the one above (visual torsion lag). */
+const IDLE_DECAY = 0.75;
+/** Soft sync of integrated angle toward UKF theta every ~2 s of wall time. */
+const THETA_SYNC_INTERVAL_S = 2;
+const THETA_SYNC_BLEND = 0.15;
+
 function deformationColor(absTau: number, maxAbs: number): string {
   const t = maxAbs > 1e-9 ? Math.min(1, absTau / maxAbs) : 0;
   if (t < 0.33) {
@@ -271,7 +279,7 @@ function BhaBitSection({
 
 /**
  * Ensamblaje industrial: Top Drive → Drillpipe/Tool Joints → BHA/PDC.
- * Lee `frameRef` en `useFrame` (sin setState por frame) — A-007.
+ * Integra ω·Δt para rotación continua; lee `frameRef` en `useFrame` (A-007).
  */
 export function DrillStringMesh({
   frameRef,
@@ -282,46 +290,125 @@ export function DrillStringMesh({
   const materialRefs = useRef<(MeshStandardMaterial | null)[]>([]);
   const grooveMaterialRefs = useRef<(MeshStandardMaterial | null)[]>([]);
   const lastCountRef = useRef(PLACEHOLDER_COUNT);
+  const angleAccum = useRef<number[]>([]);
+  const syncElapsed = useRef(0);
   const [nodeCount, setNodeCount] = useState(PLACEHOLDER_COUNT);
 
-  useFrame(() => {
+  useFrame((state, delta) => {
     const frame = frameRef.current;
     const group = groupRef.current;
-    if (!frame || !group) return;
+    if (!group) return;
 
-    const deformation = frame.torsional_deformation_rad;
-    const theta = frame.ukf_state.theta_rad;
-    const n =
-      deformation.length > 0
-        ? deformation.length
-        : theta.length > 0
-          ? theta.length
-          : 0;
-    if (n === 0) return;
+    const children = group.children;
+    const childCount = children.length;
+    if (childCount === 0) return;
 
-    // Remount geometry only when node count changes (rare).
-    if (n !== lastCountRef.current) {
-      lastCountRef.current = n;
-      setNodeCount(n);
+    // Ensure accumulators match current child count.
+    while (angleAccum.current.length < childCount) {
+      angleAccum.current.push(0);
+    }
+    if (angleAccum.current.length > childCount) {
+      angleAccum.current.length = childCount;
+    }
+
+    const dt = Math.min(delta, 0.05); // clamp to avoid jumps after tab focus
+    const t = state.clock.elapsedTime;
+
+    if (frame) {
+      const deformation = frame.torsional_deformation_rad;
+      const theta = frame.ukf_state.theta_rad;
+      const omega = frame.ukf_state.omega_rad_s;
+      const n =
+        deformation.length > 0
+          ? deformation.length
+          : theta.length > 0
+            ? theta.length
+            : 0;
+      if (n === 0) return;
+
+      // Remount geometry only when node count changes (rare).
+      if (n !== lastCountRef.current) {
+        lastCountRef.current = n;
+        setNodeCount(n);
+        return;
+      }
+
+      syncElapsed.current += dt;
+      const doSync = syncElapsed.current >= THETA_SYNC_INTERVAL_S;
+      if (doSync) syncElapsed.current = 0;
+
+      const maxAbs = Math.max(1e-3, ...deformation.map((v) => Math.abs(v)));
+      const alert = frame.alert_level;
+      const lastIdx = childCount - 1;
+
+      for (let i = 0; i < childCount; i += 1) {
+        const child = children[i];
+        if (!child) continue;
+
+        const tau = deformation[i] ?? 0;
+        const w = omega[i] ?? 0;
+        angleAccum.current[i] =
+          (angleAccum.current[i] ?? 0) + w * dt;
+
+        if (doSync && theta.length > i) {
+          const target = theta[i] ?? 0;
+          // Soft-align integrated angle toward UKF theta (shortest angular path).
+          const current = angleAccum.current[i] ?? 0;
+          const err = Math.atan2(
+            Math.sin(target - current),
+            Math.cos(target - current),
+          );
+          angleAccum.current[i] = current + err * THETA_SYNC_BLEND;
+        }
+
+        let stickOsc = 0;
+        if (alert === "critical" && i === lastIdx) {
+          // Stick-slip: bit lags then releases relative to string.
+          stickOsc =
+            Math.sin(t * 6) *
+            VISUAL_TORSION_GAIN *
+            Math.abs(tau) *
+            0.4;
+        }
+
+        child.rotation.y =
+          (angleAccum.current[i] ?? 0) + tau * VISUAL_TORSION_GAIN + stickOsc;
+
+        // Base X position is 0; apply lateral vibration for warning/critical on BHA.
+        if (i === lastIdx) {
+          if (alert === "warning") {
+            child.position.x = Math.sin(t * 4) * 0.015;
+            child.scale.y = 1;
+          } else if (alert === "critical") {
+            child.position.x = Math.sin(t * 8) * 0.025;
+            child.scale.y = 1 + Math.sin(t * 10) * 0.02;
+          } else {
+            child.position.x = 0;
+            child.scale.y = 1;
+          }
+        }
+
+        const mat = materialRefs.current[i];
+        if (mat) {
+          mat.color.set(deformationColor(Math.abs(tau), maxAbs));
+        }
+        const grooveMat = grooveMaterialRefs.current[i];
+        if (grooveMat) {
+          grooveMat.color.set(deformationColor(Math.abs(tau), maxAbs));
+        }
+      }
       return;
     }
 
-    const maxAbs = Math.max(1e-3, ...deformation.map((v) => Math.abs(v)));
-    const children = group.children;
-    for (let i = 0; i < children.length; i += 1) {
+    // No telemetry: idle spin with depth decay (visual demo without backend).
+    for (let i = 0; i < childCount; i += 1) {
       const child = children[i];
       if (!child) continue;
-      const tau = deformation[i] ?? 0;
-      const th = theta[i] ?? 0;
-      child.rotation.y = th + tau * VISUAL_TORSION_GAIN;
-      const mat = materialRefs.current[i];
-      if (mat) {
-        mat.color.set(deformationColor(Math.abs(tau), maxAbs));
-      }
-      const grooveMat = grooveMaterialRefs.current[i];
-      if (grooveMat) {
-        grooveMat.color.set(deformationColor(Math.abs(tau), maxAbs));
-      }
+      const idleOmega = IDLE_OMEGA_TOP * Math.pow(IDLE_DECAY, i);
+      angleAccum.current[i] = (angleAccum.current[i] ?? 0) + idleOmega * dt;
+      child.rotation.y = angleAccum.current[i] ?? 0;
+      child.position.x = 0;
+      child.scale.y = 1;
     }
   });
 
