@@ -30,12 +30,14 @@ Trazabilidad SPEC: **RNF-01…RNF-05** (§1.6).
 Config: [`lighthouserc.mobile.json`](lighthouserc.mobile.json)
 
 ```bash
-# Desde raíz del repo — requiere UI en http://localhost:3000
-cd src/ui && npm run build && npm run start &
-npx --yes @lhci/cli autorun --config=../../docs/arquitectura/lighthouserc.mobile.json
+# Desde la raíz del repo — LHCI NO arranca el server (evita npm en / sin package.json).
+# La UI vive en src/ui/; levantar Next y luego medir:
+cd src/ui && npm run build && npm run start -- -H 127.0.0.1 -p 3000 &
+npx --yes wait-on http://127.0.0.1:3000 --timeout 120000
+npx --yes @lhci/cli autorun --config=docs/arquitectura/lighthouserc.mobile.json
 ```
 
-Umbrales en config: `performance` ≥ 0.85; auditorías `largest-contentful-paint` y `interaction-to-next-paint` con `maxLength` acorde a presupuesto.
+Umbrales en config (modo `warn`): LCP &lt; 2,5 s · INP &lt; 200 ms · performance ≥ 0.75.
 
 ### RNF-03 — source-map-explorer
 
