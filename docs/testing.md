@@ -27,7 +27,7 @@ cd src/ui && npm run test:e2e
 | Security | `tests/security/` | Secretos, hardening de input, headers/traceback |
 | Property | `tests/property/` | Hypothesis: SSI, Stribeck, RK4 orden, UKF PSD |
 | Unit UI | `src/ui/src/**/*.test.ts(x)` | Gauges, AdvisorFeed, hooks |
-| E2E UI | `src/ui/e2e/` | Cada botón/panel del dashboard + a11y |
+| E2E UI | `src/ui/e2e/` | Cada botón/panel del dashboard + a11y + i18n ES/EN |
 
 ## E2E Playwright
 
