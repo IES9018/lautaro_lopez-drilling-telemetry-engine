@@ -219,7 +219,7 @@ python3 -m venv .venv
 | RF-01/02/08 | Ingest schemas + WebSocket 60 FPS | Hecho (pipeline) |
 | RF-11/12 | Tests, tipado, auditoría IA | En curso |
 | RF-10 | Redis Streams | Diferido (buffer in-memory) |
-| RF-09 | UI 3D | Pendiente (P3) |
+| RF-09 | UI 3D | MVP listo (malla industrial + i18n + animación) |
 | RF-07 | Advisor LLM si `SSI > 1.0` | Pendiente (P3) |
 
 Lista completa y Non-Goals: [`SPEC.md` §1](SPEC.md).

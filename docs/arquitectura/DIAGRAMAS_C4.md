@@ -153,16 +153,19 @@ flowchart LR
 | Pieza | Rol |
 |-------|-----|
 | `useTelemetryStream` | WS resiliente; `frameRef` para R3F; throttle React widgets (A-007) |
-| `DrillStringMesh` | Cilindros nodales; rotación `torsional_deformation_rad`; gradiente de color |
+| `DrillStringMesh` | Ensamblaje Top Drive / tool joints / BHA-PDC; integra `ω·Δt` + `VISUAL_TORSION_GAIN` (A-009/A-010); color por `\|τ\|`; efectos SSI |
+| `WellboreEnv` | Cilindro casing/open-hole semitransparente |
+| `SceneLights` | Hemisphere + ambient + `CameraLight` (sigue cámara) + directional suave (sombras) |
 | `SsiGauge` / `RpmDualGauge` | Instrumental; **no** recalcula SSI |
 | `AdvisorFeed` | Tarjetas SOP del envelope `advisor_recommendation` |
 | `SimulationControls` | REST start/stop/preset |
+| `LanguageSwitcher` / i18n | ES/EN tipado; default `en`; persistencia `localStorage` |
 
 ### Pipeline de render
 
 1. Envelope JSON → `parseWsMessage` / type guards.
 2. Telemetría → `frameRef.current` (sin `setState` en hot path).
-3. `useFrame` en R3F lee el ref y actualiza rotación/color de mallas.
+3. `useFrame` integra `omega_rad_s[i]·Δt` (o idle si no hay frame), aplica torsión visual y efectos de `alert_level`.
 4. Widgets React reciben `latestFrame` como máximo ~30 Hz.
 
 Stack: Next.js App Router + React Three Fiber + Three.js + TypeScript `strict`.
