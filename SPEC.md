@@ -4,8 +4,8 @@
 **Repositorio:** `IES9018/lautaro_lopez-drilling-telemetry-engine`  
 **Asignatura:** Práctica Profesionalizante III (PP3) · IES 9-018 · Ciclo 2026  
 **Sprint 1:** 24 ago – 18 sep 2026  
-**Versión del documento:** 6.0.0  
-**Estado:** **Congelado para defensa ADI** — baseline PP3 Sprint 1 + entregables TP1–TP6
+**Versión del documento:** 6.1.0  
+**Estado:** **Congelado para defensa ADI** — baseline PP3 Sprint 1 + entregables TP1–TP6 (+ ronda tests security/E2E)
 
 Este documento es la **Single Source of Truth** técnica. Cualquier cambio de modelo, contrato o arquitectura debe actualizarse aquí antes o en el mismo PR que el código.
 
@@ -740,9 +740,13 @@ Tasa objetivo de emisión: **60 FPS** (tolerancia a definir en tests de integrac
 
 | Capa | Ubicación | Foco |
 |------|-----------|------|
-| Unit | `tests/unit/` | RK4 step, Stribeck, SSI, parsers de schema |
-| Property | `tests/property/` | Invariantes con Hypothesis |
-| Integration | `tests/integration/` | Ingest → buffer → (mock) UKF → broadcast |
+| Unit | `tests/unit/` · `src/ui/**/*.test.ts(x)` | RK4, Stribeck, SSI, schemas, gauges, hooks |
+| Property | `tests/property/` | Invariantes Hypothesis (SSI ≥ 0, RK4 orden, UKF PSD) |
+| Integration | `tests/integration/` | Ingest → buffer → UKF → broadcast / REST |
+| Security | `tests/security/` | Secretos hardcodeados, input hardening, no leak traceback |
+| E2E UI | `src/ui/e2e/` (Playwright) | Dashboard, controles, SSI CRITICAL, Advisor, a11y |
+
+CI (`.github/workflows/ci.yml`): OpenAPI lint · pytest · mypy · security/property · Vitest · **Playwright** · JS budget.
 
 ### 5.3 Invariantes (Hypothesis) — baseline
 
@@ -824,6 +828,7 @@ Para entregables posteriores del sprint (fuera de este documento como “hechos�
 | 4.0.0 | 2026-08-31 | **ADI TP4:** `docs/arquitectura/api-contracts.yaml` (OpenAPI 5 endpoints), ADR-005 estrategia web, `docs/seguridad/threat-model-lite.md`, arnés v3 seguridad; §1.4 referencia schemas OpenAPI. |
 | 5.0.0 | 2026-08-31 | **ADI TP5:** §1.6 RNF-01…05 medibles, ADR-006 estrategia mobile, presupuestos rendimiento, offline Non-Goal NG-MOBILE-01, wireframes móvil. |
 | 6.0.0 | 2026-08-31 | **ADI TP6:** CI GitHub Actions, CHANGELOG v0.1.0, `.opencoderules` vFinal, postmortem, ARCH-06…08, trazabilidad ADR ↔ restricciones; **congelado defensa**. |
+| 6.1.0 | 2026-09-08 | Pirámide de testing §5.2: security + Playwright E2E; Hypothesis property materializados; A-008 en auditoría. |
 
 ---
 
@@ -841,4 +846,4 @@ Para entregables posteriores del sprint (fuera de este documento como “hechos�
 
 ---
 
-*Fin de SPEC.md v6.0.0 — Congelado para defensa ADI · Release v0.1.0*
+*Fin de SPEC.md v6.1.0 — Congelado para defensa ADI · Release v0.1.0 · ronda tests*

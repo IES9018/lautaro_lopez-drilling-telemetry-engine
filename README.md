@@ -110,7 +110,8 @@ Motor de estimación de estado en tiempo real y gemelo digital para monitoreo de
 | LLM Advisor (debounce + mock provider + SOP) | Listo |
 | UI Next.js / R3F digital twin + gauges + AdvisorFeed | Listo |
 | Tests unitarios + integración; cobertura ≥85% pipeline/advisor | Listo |
-| `MODELO_MATEMATICO.md` + `DIAGRAMAS_C4.md` + auditoría (A-001…A-007) | Listo |
+| Security + property (Hypothesis) + E2E Playwright | Listo |
+| `MODELO_MATEMATICO.md` + `DIAGRAMAS_C4.md` + auditoría (A-001…A-008) | Listo |
 | Tooling (`pyproject.toml`, CI) | Listo (`.github/workflows/`) |
 | Redis Streams (RF-10) | Diferido (buffer in-memory Sprint 1) |
 
@@ -183,6 +184,7 @@ docs/{adr,arquitectura,auditoria,contratos}
 | [`docs/arquitectura/MODELO_MATEMATICO.md`](docs/arquitectura/MODELO_MATEMATICO.md) | Ecuaciones FEM, SSI, UKF |
 | [`docs/arquitectura/DIAGRAMAS_C4.md`](docs/arquitectura/DIAGRAMAS_C4.md) | Contexto / contenedores / streaming |
 | [`docs/auditoria/auditoria-sprint1.md`](docs/auditoria/auditoria-sprint1.md) | Auditoría crítica de código IA |
+| [`docs/testing.md`](docs/testing.md) | Pirámide de tests + comandos E2E/security |
 | [`docs/contratos/`](docs/contratos/) | JSON Schema canónicos |
 | [`.cursor/rules/`](.cursor/rules/) | Enforcement por dominio |
 

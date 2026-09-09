@@ -48,6 +48,7 @@ Este informe aporta a la rúbrica de evaluación (**10% Documentación / Auditor
 | A-005 | 2026-08-25 | `src/pipeline/buffer/time_sync_buffer.py`, `orchestration/simulation_orchestrator.py`, `api/connection_manager.py` | mala práctica / arquitectura | Fixed-lag smoothing real para MWD (15–45 s): journal de `(x,P,u,z)` en `deque` (~4500 entradas × ~1.25 KB ≈ 5.6 MB con N=6). Replay offload a `asyncio.to_thread`; drop silencioso si el origen MWD es más viejo que la ventana. Tick físico 100 Hz desacoplado del broadcast 60 FPS. Backpressure por cliente (`Queue` maxsize=2, drop-oldest). Redis Streams (RF-10) diferido a favor del buffer en memoria. | Documentar trade-offs; tests de alineación, fixed-lag determinista y ciclo de vida WS. | `tests/integration/test_time_sync_buffer.py`, `test_mwd_fixed_lag_correction.py`, `test_websocket_lifecycle.py` · `DIAGRAMAS_C4.md` | lautaro_lopez | cerrado |
 | A-006 | 2026-08-25 | `src/advisor/llm_diagnostics.py`, `prompts/drilling_sop.py`, `pipeline/api/connection_manager.py` | mala práctica / arquitectura | Latencia LLM (cientos de ms–s) incompatible con tick 100 Hz / broadcast 60 FPS. Se desacopla con `asyncio.create_task` fire-and-forget + `cooldown_sec=30` + `request_timeout_sec=5`. Envelope WS discriminado (`telemetry_frame` / `advisor_recommendation`). Límites `SAFE_WOB_RANGE_KN`/`SAFE_RPM_RANGE` no fijados en SPEC (supuesto Sprint 1). Mock determinista para CI sin credenciales. | Documentar trade-offs; tests de debounce, invariantes y API advisor. | `tests/unit/test_advisor.py`, `tests/integration/test_advisor_api.py` · `DIAGRAMAS_C4.md` §4 | lautaro_lopez | cerrado |
 | A-007 | 2026-08-26 | `src/ui/src/hooks/useTelemetryStream.ts`, `components/3d/DrillStringMesh.tsx` | mala práctica / arquitectura | Re-render React a 60 FPS satura el dashboard. Se desacopla: `frameRef` + `useFrame` para el canvas R3F; widgets throttled ~33 ms. Envelope discriminado en cliente. Gradiente/rotación desde `torsional_deformation_rad` (no se recalcula SSI en UI). | Documentar; Vitest del hook y gauges. | `src/ui` tests · `DIAGRAMAS_C4.md` §5 | lautaro_lopez | cerrado |
+| A-008 | 2026-09-08 | `src/ui/e2e/`, `tests/security/`, `tests/property/` | mala práctica / QA | E2E inicial fallaba porque Playwright reusaba `:3000` (otra app local) y `routeWebSocket` no empujaba frames post-conexión de forma fiable. | Puerto E2E **3100** + `reuseExistingServer: false`; mock `WebSocket` vía `addInitScript` + bridge `__dtePushWs`. Suites security (secretos/hardening) + Hypothesis property en CI. | `src/ui/e2e/*.spec.ts` (18) · `tests/security/` · `tests/property/` · CI jobs `e2e-playwright` / `security-tests` | lautaro_lopez | cerrado |
 
 > Agregar una fila por hallazgo. No borrar filas históricas: marcar estado `cerrado`.
 
@@ -70,13 +71,13 @@ Este informe aporta a la rúbrica de evaluación (**10% Documentación / Auditor
 
 | Métrica | Valor |
 |---------|-------|
-| Total de hallazgos registrados | 7 |
+| Total de hallazgos registrados | 8 |
 | Alucinaciones | 0 |
 | Convergencia numérica | 4 |
-| Malas prácticas | 3 |
-| Hallazgos cerrados | 7 |
+| Malas prácticas | 4 |
+| Hallazgos cerrados | 8 |
 | Hallazgos abiertos | 0 |
-| PRs con código IA auditado | 7 |
+| PRs con código IA auditado | 8 |
 
 ---
 
@@ -157,6 +158,17 @@ Este informe aporta a la rúbrica de evaluación (**10% Documentación / Auditor
 - **Verificación:** `npm test` / `npm run typecheck` / `npm run build` en `src/ui`
 - **Lección aprendida:** hot path gráfico → refs; UI React → estado throttled
 
+
+### Detalle A-008
+
+- **Tipo:** mala práctica / QA (infra de tests)
+- **Agente / herramienta:** Cursor Agent (ronda tests)
+- **Qué generó la IA (resumen):** E2E Playwright apuntando a `:3000` con `reuseExistingServer`; mock WS vía `routeWebSocket` insuficiente para pushes dinámicos
+- **Por qué falló:** puerto ocupado por otra app local; frames post-conexión no actualizaban gauges
+- **Impacto potencial:** CI/E2E verdes falsos o suite inutilizable en máquinas de desarrollo
+- **Corrección aplicada:** puerto 3100, mock `WebSocket` con `addInitScript` + `__dtePushWs`
+- **Verificación:** `npx playwright test` → 18 passed; `pytest tests/security/ tests/property/` → 26 passed
+- **Lección aprendida:** aislar puerto E2E y preferir bridge in-page para telemetría mockeada
 
 ---
 

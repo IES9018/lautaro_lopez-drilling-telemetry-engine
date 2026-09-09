@@ -6,7 +6,10 @@ Formato [Keep a Changelog](https://keepachangelog.com/es/1.1.0/). Versionado [Se
 
 ### Added
 
-- Nada pendiente para v0.1.0.
+- Suite security (`tests/security/`): escaneo de secretos, input hardening, no leak traceback.
+- Property tests Hypothesis (`tests/property/`): SSI, Stribeck, RK4 orden, UKF PSD.
+- E2E Playwright (`src/ui/e2e/`): dashboard, controles, SSI CRITICAL, Advisor, accesibilidad.
+- Docs: [`docs/testing.md`](docs/testing.md); auditoría A-008; SPEC §5.2 actualizado (v6.1.0).
 
 ## [0.1.0] - 2026-08-31
 

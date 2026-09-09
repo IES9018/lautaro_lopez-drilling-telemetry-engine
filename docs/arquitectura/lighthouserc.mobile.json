@@ -2,10 +2,7 @@
   "ci": {
     "collect": {
       "numberOfRuns": 3,
-      "startServerCommand": "npm run start",
-      "startServerReadyPattern": "Ready",
-      "startServerReadyTimeout": 120000,
-      "url": ["http://localhost:3000/"],
+      "url": ["http://127.0.0.1:3000/"],
       "settings": {
         "preset": "desktop",
         "formFactor": "mobile",
