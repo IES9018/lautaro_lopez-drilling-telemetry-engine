@@ -49,3 +49,7 @@ Jobs en [`.github/workflows/ci.yml`](../.github/workflows/ci.yml):
 ## Auditoría
 
 Hallazgo **A-008** (puerto E2E / mock WS): [`docs/auditoria/auditoria-sprint1.md`](auditoria/auditoria-sprint1.md).
+
+## Última corrida local
+
+Resultados del 2026-09-08: [`docs/resultados-tests-2026-09-08.md`](resultados-tests-2026-09-08.md).
