@@ -49,6 +49,8 @@ Este informe aporta a la rúbrica de evaluación (**10% Documentación / Auditor
 | A-006 | 2026-08-25 | `src/advisor/llm_diagnostics.py`, `prompts/drilling_sop.py`, `pipeline/api/connection_manager.py` | mala práctica / arquitectura | Latencia LLM (cientos de ms–s) incompatible con tick 100 Hz / broadcast 60 FPS. Se desacopla con `asyncio.create_task` fire-and-forget + `cooldown_sec=30` + `request_timeout_sec=5`. Envelope WS discriminado (`telemetry_frame` / `advisor_recommendation`). Límites `SAFE_WOB_RANGE_KN`/`SAFE_RPM_RANGE` no fijados en SPEC (supuesto Sprint 1). Mock determinista para CI sin credenciales. | Documentar trade-offs; tests de debounce, invariantes y API advisor. | `tests/unit/test_advisor.py`, `tests/integration/test_advisor_api.py` · `DIAGRAMAS_C4.md` §4 | lautaro_lopez | cerrado |
 | A-007 | 2026-08-26 | `src/ui/src/hooks/useTelemetryStream.ts`, `components/3d/DrillStringMesh.tsx` | mala práctica / arquitectura | Re-render React a 60 FPS satura el dashboard. Se desacopla: `frameRef` + `useFrame` para el canvas R3F; widgets throttled ~33 ms. Envelope discriminado en cliente. Gradiente/rotación desde `torsional_deformation_rad` (no se recalcula SSI en UI). | Documentar; Vitest del hook y gauges. | `src/ui` tests · `DIAGRAMAS_C4.md` §5 | lautaro_lopez | cerrado |
 | A-008 | 2026-09-08 | `src/ui/e2e/`, `tests/security/`, `tests/property/` | mala práctica / QA | E2E inicial fallaba porque Playwright reusaba `:3000` (otra app local) y `routeWebSocket` no empujaba frames post-conexión de forma fiable. | Puerto E2E **3100** + `reuseExistingServer: false`; mock `WebSocket` vía `addInitScript` + bridge `__dtePushWs`. Suites security (secretos/hardening) + Hypothesis property en CI. | `src/ui/e2e/*.spec.ts` (18) · `tests/security/` · `tests/property/` · CI jobs `e2e-playwright` / `security-tests` | lautaro_lopez | cerrado |
+| A-009 | 2026-09-08 | `src/ui/src/components/3d/DrillStringMesh.tsx` | mala práctica / arquitectura | La microdeformación torsional real (~mrad) no es perceptible en la malla 3D. Se introduce `VISUAL_TORSION_GAIN=18` (offset angular puramente visual) además de `theta_rad[i]`. No altera física ni contratos. | Documentar constante; color sigue mapeando `\|τ\|` real; rotación visual = `θ + τ·GAIN`. | `DrillStringMesh.tsx` · i18n ES/EN · Vitest | lautaro_lopez | cerrado |
+| A-010 | 2026-09-08 | `DrillStringMesh.tsx`, `SceneLights.tsx` | mala práctica / arquitectura | Asignar `rotation.y = theta_rad` deja el modelo estático si ω≈0 o sin WS; luces fijas dejan caras en sombra al orbitar. | Integrar `ω·Δt` (+ idle); efectos SSI warning/critical; `HemisphereLight` + `CameraLight` que sigue la cámara. | Vitest/typecheck · C4 §5 | lautaro_lopez | cerrado |
 
 > Agregar una fila por hallazgo. No borrar filas históricas: marcar estado `cerrado`.
 
@@ -71,13 +73,13 @@ Este informe aporta a la rúbrica de evaluación (**10% Documentación / Auditor
 
 | Métrica | Valor |
 |---------|-------|
-| Total de hallazgos registrados | 8 |
+| Total de hallazgos registrados | 10 |
 | Alucinaciones | 0 |
 | Convergencia numérica | 4 |
-| Malas prácticas | 4 |
-| Hallazgos cerrados | 8 |
+| Malas prácticas | 6 |
+| Hallazgos cerrados | 10 |
 | Hallazgos abiertos | 0 |
-| PRs con código IA auditado | 8 |
+| PRs con código IA auditado | 10 |
 
 ---
 
@@ -170,7 +172,30 @@ Este informe aporta a la rúbrica de evaluación (**10% Documentación / Auditor
 - **Verificación:** `npx playwright test` → 18 passed; `pytest tests/security/ tests/property/` → 26 passed
 - **Lección aprendida:** aislar puerto E2E y preferir bridge in-page para telemetría mockeada
 
+### Detalle A-009
+
+- **Tipo:** mala práctica / arquitectura (visualización vs física)
+- **Agente / herramienta:** Frontend & WebGL 3D Graphics Architect (Cursor)
+- **Qué generó la IA (resumen):** ensamblaje Top Drive / Tool Joints / BHA-PDC + `VISUAL_TORSION_GAIN` + i18n ES/EN
+- **Por qué es un trade-off:** la deformación torsional del contrato es pequeña; sin ganancia visual el gemelo no comunica stick-slip
+- **Impacto potencial:** un operador podría interpretar el ángulo exagerado como valor físico; queda documentado que es solo render
+- **Corrección aplicada:** constante exportada y comentada; color mapea `\|τ\|` real; sin tocar `src/engine/`
+- **Verificación:** `npm run typecheck` / `npm test` en `src/ui`
+- **Lección aprendida:** toda ganancia visual sobre telemetría debe declararse y auditarse
+
+### Detalle A-010
+
+- **Tipo:** mala práctica / arquitectura (animación e iluminación UI)
+- **Agente / herramienta:** Frontend & WebGL 3D Graphics Architect (Cursor)
+- **Qué generó la IA (resumen):** integración `ω·Δt`, idle spin, efectos SSI; `CameraLight` + `HemisphereLight`
+- **Por qué falló el MVP previo:** `theta_rad` absoluto no anima si la simulación está quieta; luces mundiales dejan el modelo a oscuras al orbitar
+- **Impacto potencial:** demo “congelada” y lectura visual engañosa del gemelo
+- **Corrección aplicada:** acumulador angular + sync suave a UKF; iluminación omnidireccional + key que sigue la cámara
+- **Verificación:** typecheck + Vitest; inspección visual en `npm run dev`
+- **Lección aprendida:** rotación de gemelo = integrar velocidad; luces de demo deben seguir la cámara o ser hemisféricas
+
 ---
+
 
 ## 5. Lecciones aprendidas
 

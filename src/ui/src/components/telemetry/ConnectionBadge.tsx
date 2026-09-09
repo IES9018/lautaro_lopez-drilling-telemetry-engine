@@ -1,16 +1,18 @@
 "use client";
 
 import { cn } from "@/lib/cn";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 import type { ConnectionStatus } from "@/hooks/useTelemetryStream";
 
-const LABELS: Record<ConnectionStatus, string> = {
-  connecting: "Connecting",
-  open: "Live",
-  closed: "Disconnected",
-  error: "Error",
-};
-
 export function ConnectionBadge({ status }: { status: ConnectionStatus }) {
+  const { dictionary } = useTranslation();
+  const labels: Record<ConnectionStatus, string> = {
+    connecting: dictionary.metrics.status.connecting,
+    open: dictionary.metrics.status.live,
+    closed: dictionary.metrics.status.disconnected,
+    error: dictionary.metrics.status.error,
+  };
+
   return (
     <span
       data-testid="connection-badge"
@@ -31,7 +33,7 @@ export function ConnectionBadge({ status }: { status: ConnectionStatus }) {
           status === "error" && "bg-red-400",
         )}
       />
-      {LABELS[status]}
+      {labels[status]}
     </span>
   );
 }

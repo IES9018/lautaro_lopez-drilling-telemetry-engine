@@ -3,6 +3,7 @@
 import { Play, Square } from "lucide-react";
 
 import { cn } from "@/lib/cn";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 import type { SimulationControlState } from "@/hooks/useSimulationControl";
 import type { ScenarioName } from "@/types/telemetry";
 
@@ -17,7 +18,9 @@ export interface SimulationControlsProps {
 }
 
 export function SimulationControls({ control }: SimulationControlsProps) {
+  const { dictionary } = useTranslation();
   const { status, busy, error, start, stop, setPreset } = control;
+  const sc = dictionary.simulationControls;
 
   return (
     <div
@@ -25,7 +28,7 @@ export function SimulationControls({ control }: SimulationControlsProps) {
       data-testid="simulation-controls"
     >
       <h3 className="mb-3 text-sm font-semibold tracking-wide text-slate-200">
-        Simulation Control
+        {sc.title}
       </h3>
       <div className="flex flex-wrap gap-2">
         <button
@@ -38,7 +41,7 @@ export function SimulationControls({ control }: SimulationControlsProps) {
           )}
         >
           <Play className="h-4 w-4" />
-          Start
+          {sc.start}
         </button>
         <button
           type="button"
@@ -50,7 +53,7 @@ export function SimulationControls({ control }: SimulationControlsProps) {
           )}
         >
           <Square className="h-4 w-4" />
-          Stop
+          {sc.stop}
         </button>
       </div>
       <div className="mt-3 flex flex-wrap gap-2">
@@ -74,8 +77,8 @@ export function SimulationControls({ control }: SimulationControlsProps) {
       </div>
       {status ? (
         <p className="mt-3 font-mono text-xs text-slate-400">
-          running={String(status.running)} · t={status.sim_time_s.toFixed(2)}s ·
-          drops={status.mwd_drops}
+          {sc.running}={String(status.running)} · {sc.simTime}=
+          {status.sim_time_s.toFixed(2)}s · {sc.mwdDrops}={status.mwd_drops}
         </p>
       ) : null}
       {error ? (

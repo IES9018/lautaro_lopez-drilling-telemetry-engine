@@ -8,8 +8,14 @@ Formato [Keep a Changelog](https://keepachangelog.com/es/1.1.0/). Versionado [Se
 
 - Suite security (`tests/security/`): escaneo de secretos, input hardening, no leak traceback.
 - Property tests Hypothesis (`tests/property/`): SSI, Stribeck, RK4 orden, UKF PSD.
-- E2E Playwright (`src/ui/e2e/`): dashboard, controles, SSI CRITICAL, Advisor, accesibilidad.
-- Docs: [`docs/testing.md`](docs/testing.md); auditoría A-008; SPEC §5.2 actualizado (v6.1.0).
+- E2E Playwright (`src/ui/e2e/`): dashboard, controles, SSI CRITICAL, Advisor, accesibilidad, i18n.
+- Docs: [`docs/testing.md`](docs/testing.md); auditoría A-008…A-010; SPEC §5.2 / UI (v6.2.0).
+- **UI 3D realista:** ensamblaje Top Drive / drillpipe+tool joints / BHA+PDC; `WellboreEnv` (casing); i18n ES/EN (`LanguageSwitcher`).
+
+### Changed
+
+- **UI animación:** integración continua `ω·Δt` + idle spin; efectos visuales SSI (warning/critical).
+- **UI iluminación:** `HemisphereLight` + `CameraLight` (sigue la cámara) para iluminación omnidireccional.
 
 ## [0.1.0] - 2026-08-31
 

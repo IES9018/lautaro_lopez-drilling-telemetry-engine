@@ -6,6 +6,7 @@ import type { MutableRefObject } from "react";
 
 import { DrillStringMesh } from "@/components/3d/DrillStringMesh";
 import { SceneLights } from "@/components/3d/SceneLights";
+import { WellboreEnv } from "@/components/3d/WellboreEnv";
 import type { TelemetryFrame } from "@/types/telemetry";
 
 export interface DrillStringCanvasProps {
@@ -13,8 +14,14 @@ export interface DrillStringCanvasProps {
 }
 
 export function DrillStringCanvas({ frameRef }: DrillStringCanvasProps) {
+  const nodeCount =
+    frameRef.current?.torsional_deformation_rad.length ?? 6;
+
   return (
-    <div className="h-full min-h-[320px] w-full overflow-hidden rounded-xl border border-slate-700/80 bg-slate-950">
+    <div
+      className="h-full min-h-[320px] w-full overflow-hidden rounded-xl border border-slate-700/80 bg-slate-950"
+      data-testid="drillstring-canvas"
+    >
       <Canvas
         shadows
         dpr={[1, 2]}
@@ -23,6 +30,7 @@ export function DrillStringCanvas({ frameRef }: DrillStringCanvasProps) {
       >
         <color attach="background" args={["#0b1220"]} />
         <SceneLights />
+        <WellboreEnv nodeCount={nodeCount} />
         <DrillStringMesh frameRef={frameRef} />
         <Grid
           position={[0, -2.2, 0]}

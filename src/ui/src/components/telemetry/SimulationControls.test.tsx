@@ -1,8 +1,8 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { SimulationControls } from "@/components/telemetry/SimulationControls";
 import type { SimulationControlState } from "@/hooks/useSimulationControl";
+import { fireEvent, render, screen, waitFor } from "@/test/test-utils";
 
 function mockControl(
   overrides: Partial<SimulationControlState> = {},

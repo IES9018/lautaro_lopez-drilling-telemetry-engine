@@ -4,8 +4,8 @@
 **Repositorio:** `IES9018/lautaro_lopez-drilling-telemetry-engine`  
 **Asignatura:** Práctica Profesionalizante III (PP3) · IES 9-018 · Ciclo 2026  
 **Sprint 1:** 24 ago – 18 sep 2026  
-**Versión del documento:** 6.1.0  
-**Estado:** **Congelado para defensa ADI** — baseline PP3 Sprint 1 + entregables TP1–TP6 (+ ronda tests security/E2E)
+**Versión del documento:** 6.2.0  
+**Estado:** **Congelado para defensa ADI** — baseline PP3 Sprint 1 + entregables TP1–TP6 (+ ronda tests + UI 3D realista/i18n)
 
 Este documento es la **Single Source of Truth** técnica. Cualquier cambio de modelo, contrato o arquitectura debe actualizarse aquí antes o en el mismo PR que el código.
 
@@ -829,6 +829,7 @@ Para entregables posteriores del sprint (fuera de este documento como “hechos�
 | 5.0.0 | 2026-08-31 | **ADI TP5:** §1.6 RNF-01…05 medibles, ADR-006 estrategia mobile, presupuestos rendimiento, offline Non-Goal NG-MOBILE-01, wireframes móvil. |
 | 6.0.0 | 2026-08-31 | **ADI TP6:** CI GitHub Actions, CHANGELOG v0.1.0, `.opencoderules` vFinal, postmortem, ARCH-06…08, trazabilidad ADR ↔ restricciones; **congelado defensa**. |
 | 6.1.0 | 2026-09-08 | Pirámide de testing §5.2: security + Playwright E2E; Hypothesis property materializados; A-008 en auditoría. |
+| 6.2.0 | 2026-09-08 | UI gemelo: malla industrial (Top Drive/BHA/PDC), WellboreEnv, i18n ES/EN, rotación continua ω·Δt, iluminación omnidireccional; A-009/A-010. |
 
 ---
 
