@@ -16,6 +16,7 @@ Formato [Keep a Changelog](https://keepachangelog.com/es/1.1.0/). Versionado [Se
 
 - **UI animación:** integración continua `ω·Δt` + idle spin; efectos visuales SSI (warning/critical).
 - **UI iluminación:** `HemisphereLight` + `CameraLight` (sigue la cámara) para iluminación omnidireccional.
+- Feedback TP6 (#18): SPEC §5.3 #4 aclara UKF **P PSD numérica** (ε=1e-8); RNF-03 JS budget documentado como **non-blocking** intencional.
 
 ## [0.1.0] - 2026-08-31
 

@@ -55,6 +55,18 @@ def _h_surface_and_bit(state: NDArray[np.float64]) -> NDArray[np.float64]:
 
 
 def _is_symmetric_psd(p: NDArray[np.float64], tol: float = 1e-8) -> bool:
+    """Comprueba simetría + PSD numérica de P (no PD estricta).
+
+    - Simetría: ``allclose(P, P.T, atol=tol)``.
+    - PSD numérica: autovalores ``λ_i > -tol`` (permite eig ligeramente
+      negativos por drift de punto flotante tras predict/update).
+    - **No** se exige PD estricta (``λ_i > 0``).
+
+    ``tol=1e-8`` es la relajación alineada al jitter/Cholesky del UKF
+    (auditoría A-003, ``MODELO_MATEMATICO.md`` §8.2): el filtro ya
+    re-simetriza P y puede inyectar ``εI`` cuando Cholesky falla.
+    Ver SPEC §5.3 #4.
+    """
     if not np.allclose(p, p.T, atol=tol):
         return False
     eig = np.linalg.eigvalsh(p)
