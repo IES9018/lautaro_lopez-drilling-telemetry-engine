@@ -115,6 +115,7 @@ Este informe aporta a la rúbrica de evaluación (**10% Documentación / Auditor
 - **Corrección aplicada:** documentar en `MODELO_MATEMATICO.md` §8; tests PSD/simetría/3σ
 - **Verificación:** `test_predict_preserves_symmetry_and_psd`, `test_consistency_error_within_three_sigma`
 - **Lección aprendida:** toda decisión de estabilización del filtro debe registrarse y cubrirse con test
+- **Nota property (feedback #18):** `_is_symmetric_psd` en `tests/property/test_kalman_invariants.py` usa `λ_i > -1e-8` (PSD numérica alineada al jitter), no PD estricta (`λ_i > 0`).
 
 ### Detalle A-004
 

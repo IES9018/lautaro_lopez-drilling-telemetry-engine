@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 # Verifica presupuesto RNF-03: JS shell gzip < 200 KB (excluye chunk 3D lazy).
 # Uso: desde raíz del repo, con src/ui ya buildeado (npm run build).
+#
+# Política Sprint 1 (intencional, feedback ADI/TP6 #18):
+# - Sin build (.next ausente) → exit 1 (error de setup).
+# - Exceso de budget → WARN + exit 0 (non-blocking / vigilancia).
+#   Misma filosofía que Lighthouse móvil (warn + continue-on-error).
+#   Ver docs/arquitectura/presupuestos-rendimiento.md (RNF-03).
 set -euo pipefail
 
 UI_DIR="$(cd "$(dirname "$0")/../src/ui" && pwd)"
@@ -25,7 +31,8 @@ total_kb=$((total_bytes / 1024))
 echo "RNF-03 shell JS (gzip, excl. 3D chunks): ${total_kb} KB (presupuesto < ${BUDGET_KB} KB)"
 
 if (( total_kb > BUDGET_KB )); then
-  echo "WARN: presupuesto excedido — revisar presupuestos-rendimiento.md"
+  echo "WARN: presupuesto excedido — non-blocking (vigilancia RNF-03 Sprint 1)."
+  echo "      Revisar docs/arquitectura/presupuestos-rendimiento.md; no falla el job CI."
   exit 0
 fi
 

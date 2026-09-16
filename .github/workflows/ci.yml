@@ -97,6 +97,7 @@ jobs:
           path: src/ui/playwright-report/
           retention-days: 7
 
+  # RNF-03: script WARN+exit 0 si excede budget (non-blocking / vigilancia Sprint 1).
   js-budget:
     name: RNF-03 JS shell budget
     needs: ui-build

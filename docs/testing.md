@@ -25,7 +25,7 @@ cd src/ui && npm run test:e2e
 | Unit Python | `tests/unit/` | Física, UKF, Advisor |
 | Integration | `tests/integration/` | FastAPI REST/WS, buffer, contratos |
 | Security | `tests/security/` | Secretos, hardening de input, headers/traceback |
-| Property | `tests/property/` | Hypothesis: SSI, Stribeck, RK4 orden, UKF PSD |
+| Property | `tests/property/` | Hypothesis: SSI, Stribeck, RK4 orden, UKF **PSD numérica** (`λ > -1e-8`, no PD estricta) |
 | Unit UI | `src/ui/src/**/*.test.ts(x)` | Gauges, AdvisorFeed, hooks |
 | E2E UI | `src/ui/e2e/` | Cada botón/panel del dashboard + a11y + i18n ES/EN |
 
@@ -41,14 +41,17 @@ cd src/ui && npm run test:e2e
 
 Jobs en [`.github/workflows/ci.yml`](../.github/workflows/ci.yml):
 
+- `openapi-lint` — Spectral sobre OpenAPI
 - `python-tests` — pytest completo + mypy
 - `security-tests` — `tests/security/` + `tests/property/`
 - `ui-build` — typecheck + build + Vitest
 - `e2e-playwright` — `npx playwright test` (+ artifact report on failure)
+- `js-budget` — RNF-03 shell JS gzip (`scripts/check-js-budget.sh`); **non-blocking** si excede 200 KB (WARN + exit 0; vigilancia Sprint 1)
+- `lighthouse-mobile` — RNF-01/02; `continue-on-error: true` (modo warn)
 
 ## Auditoría
 
-Hallazgo **A-008** (puerto E2E / mock WS): [`docs/auditoria/auditoria-sprint1.md`](auditoria/auditoria-sprint1.md).
+Hallazgos A-008…A-010 y nota PSD en A-003: [`docs/auditoria/auditoria-sprint1.md`](auditoria/auditoria-sprint1.md).
 
 ## Última corrida local
 

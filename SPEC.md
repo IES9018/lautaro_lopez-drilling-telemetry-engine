@@ -4,7 +4,7 @@
 **Repositorio:** `IES9018/lautaro_lopez-drilling-telemetry-engine`  
 **Asignatura:** Práctica Profesionalizante III (PP3) · IES 9-018 · Ciclo 2026  
 **Sprint 1:** 24 ago – 18 sep 2026  
-**Versión del documento:** 6.2.0  
+**Versión del documento:** 6.2.1  
 **Estado:** **Congelado para defensa ADI** — baseline PP3 Sprint 1 + entregables TP1–TP6 (+ ronda tests + UI 3D realista/i18n)
 
 Este documento es la **Single Source of Truth** técnica. Cualquier cambio de modelo, contrato o arquitectura debe actualizarse aquí antes o en el mismo PR que el código.
@@ -753,7 +753,7 @@ CI (`.github/workflows/ci.yml`): OpenAPI lint · pytest · mypy · security/prop
 1. **Energía (fricción nula, torque externo nulo):** la energía mecánica torsional no crece artificialmente más allá de tolerancia numérica documentada.
 2. **Límites físicos:** RPM ≥ 0 en broca cuando el modelo lo impone; SSI ≥ 0.
 3. **Monotonicidad Stribeck (régimen):** para \(\omega\) crecientes en un rango acordado, el término Stribeck decae hacia \(T_c\) (propiedad acotada, no “caja negra”).
-4. **UKF — \(\mathbf{P}\) definida positiva:** autovalores &gt; 0 (o ≥ ε con jitter documentado) tras predict/update.
+4. **UKF — \(\mathbf{P}\) semidefinida positiva (PSD) numérica:** tras predict/update se exige simetría y autovalores \(\lambda_i &gt; -\varepsilon\) con \(\varepsilon = 10^{-8}\) (relajación alineada al jitter/Cholesky; **no** PD estricta \(\lambda_i &gt; 0\)). Ver `_is_symmetric_psd` en `tests/property/test_kalman_invariants.py` y A-003.
 5. **Schemas:** payloads aleatorios inválidos son rechazados; válidos son aceptados.
 
 ### 5.4 Estabilidad numérica
@@ -830,6 +830,7 @@ Para entregables posteriores del sprint (fuera de este documento como “hechos�
 | 6.0.0 | 2026-08-31 | **ADI TP6:** CI GitHub Actions, CHANGELOG v0.1.0, `.opencoderules` vFinal, postmortem, ARCH-06…08, trazabilidad ADR ↔ restricciones; **congelado defensa**. |
 | 6.1.0 | 2026-09-08 | Pirámide de testing §5.2: security + Playwright E2E; Hypothesis property materializados; A-008 en auditoría. |
 | 6.2.0 | 2026-09-08 | UI gemelo: malla industrial (Top Drive/BHA/PDC), WellboreEnv, i18n ES/EN, rotación continua ω·Δt, iluminación omnidireccional; A-009/A-010. |
+| 6.2.1 | 2026-09-15 | Feedback TP6 (#18): §5.3 #4 aclara PSD numérica (ε=1e-8) vs PD estricta; JS budget RNF-03 documentado non-blocking. |
 
 ---
 
@@ -847,4 +848,4 @@ Para entregables posteriores del sprint (fuera de este documento como “hechos�
 
 ---
 
-*Fin de SPEC.md v6.1.0 — Congelado para defensa ADI · Release v0.1.0 · ronda tests*
+*Fin de SPEC.md v6.2.1 — Congelado para defensa ADI · Release v0.1.0 · feedback TP6 #18*

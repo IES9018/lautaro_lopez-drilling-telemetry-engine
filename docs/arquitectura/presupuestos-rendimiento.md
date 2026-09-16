@@ -15,7 +15,7 @@ Trazabilidad SPEC: **RNF-01…RNF-05** (§1.6).
 |----|---------|-------------|----------------------------|------------|
 | **RNF-01** | **LCP móvil** (Largest Contentful Paint) | **&lt; 2,5 s** en 4G | **Lighthouse CI** (`@lhci/cli`) — perf móvil | CI (TP6) + manual pre-release |
 | **RNF-02** | **INP** (Interaction to Next Paint) | **&lt; 200 ms** | **Lighthouse CI** — categoría Performance | CI (TP6) + manual |
-| **RNF-03** | **Peso JS inicial gzip** (shell sin chunk 3D) | **&lt; 200 KB** | **`source-map-explorer`** sobre `.next/static/chunks` tras `next build` | CI script (TP6) + local en PR UI |
+| **RNF-03** | **Peso JS inicial gzip** (shell sin chunk 3D) | **&lt; 200 KB** | **`scripts/check-js-budget.sh`** (+ `source-map-explorer` opcional) | CI job `js-budget` (TP6) + local en PR UI |
 | **RNF-04** | **Chunk 3D lazy** (`DrillStringCanvas`) | Documentado; no bloquea LCP | `source-map-explorer` chunk aislado; meta &lt; 500 KB gzip Sprint 3 | Sprint 3 auditoría |
 | **RNF-05** | **Targets táctiles** controles críticos | **≥ 48 px** (Material); ≥ 44 pt Apple HIG | Inspección wireframe + RTL test `getBoundingClientRect` en CI opcional | Review diseño + test UI |
 
@@ -58,6 +58,8 @@ Script de referencia (Sprint 3 / TP6):
 ./scripts/check-js-budget.sh
 ```
 
+**Política CI (Sprint 1, intencional):** el job `js-budget` **no bloquea merge** si se excede el presupuesto. El script imprime `WARN` y sale con código **0**. Solo falla (`exit 1`) si no hay build (`.next` ausente). Misma filosofía que Lighthouse móvil (`warn` + `continue-on-error: true`). Endurecer a blocking queda para cuando el shell esté estable bajo 200 KB (Sprint 3 / despliegue).
+
 ### RNF-05 — targets táctiles
 
 - Wireframes móvil: botones Start/Stop y presets con min-height 48 px.
@@ -81,7 +83,7 @@ Script de referencia (Sprint 3 / TP6):
 |-----|--------|------|
 | RNF-01 | Objetivo Sprint 3 | 3D lazy ayuda; medir tras optimizar shell |
 | RNF-02 | Objetivo Sprint 3 | WS a 60 FPS puede competir en main thread |
-| RNF-03 | En vigilancia | Shell Next 15 + React 19 cerca del límite; no incluir chunk 3D |
+| RNF-03 | En vigilancia (non-blocking) | Shell Next 15 + React 19 cerca del límite; `check-js-budget.sh` WARN+exit 0; no incluir chunk 3D |
 | RNF-04 | Aceptado deferido | Three.js inevitable > 200 KB en chunk propio |
 | RNF-05 | Diseño TP5 | Wireframes móvil anotan 48 px |
 
